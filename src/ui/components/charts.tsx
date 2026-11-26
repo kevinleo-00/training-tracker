@@ -169,6 +169,9 @@ export function LineChart({
 
   return (
     <figure className="chart">
+      <figcaption className="chart-readout" aria-live="polite">
+        {shown?.label}
+      </figcaption>
       <div className="chart-legend">
         {series.map((s, i) => (
           <span key={s.name} className="legend-item">
@@ -178,9 +181,6 @@ export function LineChart({
           </span>
         ))}
       </div>
-      <figcaption className="chart-readout" aria-live="polite">
-        {shown?.label}
-      </figcaption>
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={title} onPointerDown={select} onPointerMove={(e) => e.buttons && select(e)}>
         <Gridlines ticks={ticks} y={y} format={formatAxisNumber} />
         {shown && <line className="chart-crosshair" x1={x(shown.x)} x2={x(shown.x)} y1={PAD.top} y2={PAD.top + PLOT_H} />}

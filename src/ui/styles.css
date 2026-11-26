@@ -627,8 +627,11 @@ section.card {
 
 .timer-progress {
   position: absolute;
-  inset: 0;
-  background: var(--accent-soft);
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent);
   transform-origin: left;
   transition: transform 0.25s linear;
   pointer-events: none;
