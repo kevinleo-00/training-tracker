@@ -1,4 +1,4 @@
-import { type PointerEvent, useState } from 'react';
+import { type PointerEvent, useId, useState } from 'react';
 
 const formatAxisNumber = (v: number) => String(Math.round(v * 10) / 10);
 
@@ -53,6 +53,11 @@ function Gridlines({ ticks, y, format }: { ticks: number[]; y: (v: number) => nu
   );
 }
 
+/** A round dot drawn as a rect, so a theme can square its corners in CSS. */
+function Dot({ cx, cy, r }: { cx: number; cy: number; r: number }) {
+  return <rect className="chart-dot" x={cx - r} y={cy - r} width={2 * r} height={2 * r} rx={r} />;
+}
+
 export interface Bar {
   key: string;
   label: string;
@@ -71,6 +76,7 @@ export function BarChart({
   describe: (bar: Bar) => string;
 }) {
   const [selected, setSelected] = useState<number | null>(null);
+  const clipId = useId();
   const max = niceMax(Math.max(...bars.map((b) => b.value)));
   const band = PLOT_W / bars.length;
   const barW = Math.min(18, band - 6);
@@ -86,17 +92,25 @@ export function BarChart({
       </figcaption>
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={title} onPointerDown={select} onPointerMove={(e) => e.buttons && select(e)}>
         <Gridlines ticks={[0, max / 2, max]} y={y} format={formatTick} />
+        {/* Bars run past the baseline and get clipped there, so only their top corners show rounding. */}
+        <clipPath id={clipId}>
+          <rect width={W} height={PAD.top + PLOT_H} />
+        </clipPath>
         {bars.map((b, i) => {
           const x = PAD.left + i * band + (band - barW) / 2;
           const h = PLOT_H * (b.value / max);
           const r = Math.min(4, h, barW / 2);
-          const base = PAD.top + PLOT_H;
           return (
             <g key={b.key}>
               {h > 0 && (
-                <path
+                <rect
                   className={selected === i ? 'chart-bar selected' : 'chart-bar'}
-                  d={`M${x},${base}V${base - h + r}q0,-${r} ${r},-${r}h${barW - 2 * r}q${r},0 ${r},${r}V${base}z`}
+                  clipPath={`url(#${clipId})`}
+                  x={x}
+                  y={y(b.value)}
+                  width={barW}
+                  height={h + r}
+                  rx={r}
                 />
               )}
               {(bars.length - 1 - i) % 4 === 0 && (
@@ -188,7 +202,7 @@ export function LineChart({
           <g key={s.name} className={s.className}>
             <polyline className="chart-line" points={points.map((p) => `${x(p.x)},${y(p.values[si] ?? 0)}`).join(' ')} />
             {points.map((p, i) => (
-              <circle key={i} className="chart-dot" cx={x(p.x)} cy={y(p.values[si] ?? 0)} r={i === active ? 5 : 4} />
+              <Dot key={i} cx={x(p.x)} cy={y(p.values[si] ?? 0)} r={i === active ? 5 : 4} />
             ))}
           </g>
         ))}
