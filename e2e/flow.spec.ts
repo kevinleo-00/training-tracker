@@ -1,5 +1,6 @@
 import { expect, type Page, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
+import { readSaved } from './saved';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const localDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -10,26 +11,6 @@ const setRow = (page: Page, n: number) => ({
   reps: page.getByLabel(`Bench press set ${n} reps`),
   done: page.getByRole('button', { name: `Bench press set ${n} done` }),
 });
-
-/** The app document as saved in IndexedDB, serialized. */
-function readSaved(page: Page): Promise<string> {
-  return page.evaluate(
-    () =>
-      new Promise<string>((resolve, reject) => {
-        const open = indexedDB.open('keyval-store');
-        open.onerror = () => reject(open.error);
-        open.onsuccess = () => {
-          const db = open.result;
-          const get = db.transaction('keyval').objectStore('keyval').get('app-state');
-          get.onerror = () => reject(get.error);
-          get.onsuccess = () => {
-            db.close();
-            resolve(JSON.stringify(get.result ?? null));
-          };
-        };
-      }),
-  );
-}
 
 test.beforeEach(async ({ page }) => {
   // Desktop WebKit may offer a native share sheet; the phone path is covered by the download fallback here.
