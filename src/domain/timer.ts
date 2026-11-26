@@ -75,3 +75,17 @@ export function parseTimer(text: string | null): TimerState {
   if (r.status === 'finished') return { status: 'finished' };
   return IDLE;
 }
+
+const STALE_AFTER_MS = 10 * 60_000;
+
+/**
+ * Adjusts a timer persisted by a previous launch. A finish within the last ten
+ * minutes still shows; an older one, or a finish already shown, clears.
+ */
+export function restore(state: TimerState, now: number): TimerState {
+  if (state.status === 'finished') return IDLE;
+  if (state.status === 'running' && now >= state.endsAt) {
+    return now - state.endsAt <= STALE_AFTER_MS ? { status: 'finished' } : IDLE;
+  }
+  return state;
+}

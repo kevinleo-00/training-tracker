@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addTime, cancel, IDLE, parseTimer, pause, remainingMs, resume, start, tick, type TimerState } from './timer';
+import { addTime, cancel, IDLE, parseTimer, pause, remainingMs, restore, resume, start, tick, type TimerState } from './timer';
 
 const T0 = 1_000_000;
 
@@ -63,5 +63,15 @@ describe('rest timer', () => {
     expect(parseTimer('{nope')).toEqual(IDLE);
     expect(parseTimer(JSON.stringify({ status: 'running', endsAt: 'soon', durationMs: 1 }))).toEqual(IDLE);
     expect(parseTimer(JSON.stringify({ status: 'exploded' }))).toEqual(IDLE);
+  });
+
+  it('restores on relaunch: keeps a live timer, reports a recent finish, and drops stale ones', () => {
+    const running = start(60_000, T0);
+    expect(restore(running, T0 + 30_000)).toBe(running);
+    expect(restore(running, T0 + 60_000 + 5 * 60_000)).toEqual({ status: 'finished' });
+    expect(restore(running, T0 + 60_000 + 11 * 60_000)).toEqual(IDLE);
+    const paused: TimerState = { status: 'paused', remainingMs: 1, durationMs: 2 };
+    expect(restore(paused, T0 + 999_999_999)).toBe(paused);
+    expect(restore({ status: 'finished' }, T0)).toEqual(IDLE);
   });
 });
