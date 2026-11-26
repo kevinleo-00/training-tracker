@@ -1,5 +1,18 @@
 import { parseLocalDate } from './dates';
-import type { AppState, EntryId, Exercise, ExerciseId, SetId, Settings, Workout, WorkoutEntry, WorkoutId, WorkSet } from './types';
+import {
+  type AppState,
+  type EntryId,
+  type Exercise,
+  type ExerciseId,
+  type SetId,
+  type Settings,
+  THEME_IDS,
+  type ThemeId,
+  type Workout,
+  type WorkoutEntry,
+  type WorkoutId,
+  type WorkSet,
+} from './types';
 
 export type ParseResult = { ok: true; state: AppState } | { ok: false; error: string };
 
@@ -118,5 +131,13 @@ function settings(raw: unknown): Settings {
     restPresetsSec: presets,
     autoStartRest: s.autoStartRest,
     lastRestSec: nonNegative(s.lastRestSec, 'settings.lastRestSec', true),
+    theme: theme(s.theme),
   };
+}
+
+/** Data saved before themes existed has no `theme`, so it gets the original look. */
+function theme(v: unknown): ThemeId {
+  if (v === undefined) return 'classic';
+  if (!THEME_IDS.includes(v as ThemeId)) fail('settings.theme', THEME_IDS.map((id) => `"${id}"`).join(' or '));
+  return v as ThemeId;
 }

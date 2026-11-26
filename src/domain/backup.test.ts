@@ -47,10 +47,26 @@ describe('backup', () => {
     ['a bad unit', mutate((r) => (r.settings.unit = 'stone'))],
     ['empty rest presets', mutate((r) => (r.settings.restPresetsSec = []))],
     ['a missing exercises map', mutate((r) => delete r.exercises)],
+    ['an unknown theme', mutate((r) => (r.settings.theme = 'neon'))],
   ])('rejects %s with a message', (_label, text) => {
     const result = parseAppState(text);
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error).toMatch(/\S/);
+  });
+
+  it('fills the classic theme into data saved before themes existed', () => {
+    const result = parseAppState(mutate((r) => delete r.settings.theme));
+    expect(result).toEqual({ ok: true, state: { ...sample(), settings: { ...sample().settings, theme: 'classic' } } });
+  });
+
+  it('keeps a chosen theme', () => {
+    const result = parseAppState(mutate((r) => (r.settings.theme = 'pixel')));
+    expect(result.ok && result.state.settings.theme).toBe('pixel');
+  });
+
+  it('names the theme field when it rejects an unknown theme', () => {
+    const result = parseAppState(mutate((r) => (r.settings.theme = 'neon')));
+    expect(result.ok ? null : result.error).toMatch(/settings\.theme/);
   });
 
   it('drops unknown fields instead of carrying them into state', () => {

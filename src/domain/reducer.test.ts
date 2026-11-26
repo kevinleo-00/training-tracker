@@ -123,7 +123,18 @@ describe('reduce', () => {
 
   it('merges a settings patch', () => {
     const s = run({ type: 'settings/update', patch: { unit: 'lb', lastRestSec: 120 } });
-    expect(s.settings).toEqual({ unit: 'lb', restPresetsSec: [60, 90, 120, 180], autoStartRest: true, lastRestSec: 120 });
+    expect(s.settings).toEqual({
+      unit: 'lb',
+      restPresetsSec: [60, 90, 120, 180],
+      autoStartRest: true,
+      lastRestSec: 120,
+      theme: 'classic',
+    });
+  });
+
+  it('switches the theme and leaves the other settings alone', () => {
+    const s = run({ type: 'settings/update', patch: { theme: 'pixel' } });
+    expect(s.settings).toEqual({ ...emptyState().settings, theme: 'pixel' });
   });
 
   it('replaces the whole state', () => {

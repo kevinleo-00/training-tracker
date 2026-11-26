@@ -26,11 +26,15 @@ export interface Workout {
   name: string;
   entries: WorkoutEntry[];
 }
+export const THEME_IDS = ['classic', 'pixel'] as const;
+export type ThemeId = (typeof THEME_IDS)[number];
+
 export interface Settings {
   unit: 'kg' | 'lb';
   restPresetsSec: number[];
   autoStartRest: boolean;
   lastRestSec: number;
+  theme: ThemeId;
 }
 export interface AppState {
   version: 1;
@@ -44,6 +48,7 @@ const DEFAULT_SETTINGS: Settings = {
   restPresetsSec: [60, 90, 120, 180],
   autoStartRest: true,
   lastRestSec: 90,
+  theme: 'classic',
 };
 
 export function emptyState(): AppState {
