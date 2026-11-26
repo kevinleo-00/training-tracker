@@ -1,12 +1,13 @@
 import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 import { parseAppState } from '../../domain/backup';
-import type { AppState, Exercise } from '../../domain/types';
+import { type AppState, type Exercise, THEME_IDS } from '../../domain/types';
 import { useAppState, useDispatch } from '../../store/react';
 import { exportBackup } from '../backupFile';
 import { Icon } from '../components/Icon';
 import { NumberField } from '../components/NumberField';
 import { ConfirmSheet, Sheet } from '../components/Sheet';
 import { formatSeconds } from '../format';
+import { THEMES } from '../themes';
 
 export function SettingsScreen({ onImported }: { onImported: () => Promise<void> }) {
   const state = useAppState();
@@ -20,6 +21,31 @@ export function SettingsScreen({ onImported }: { onImported: () => Promise<void>
       <header className="screen-header">
         <h1>Settings</h1>
       </header>
+
+      <section className="group">
+        <h2 className="group-title">Appearance</h2>
+        <div className="theme-picker" role="radiogroup" aria-label="Theme">
+          {THEME_IDS.map((id) => (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              className="theme-option"
+              aria-checked={settings.theme === id}
+              onClick={() => dispatch({ type: 'settings/update', patch: { theme: id } })}
+            >
+              <span className="theme-preview" data-theme={id} aria-hidden="true">
+                <span className="theme-preview-window">
+                  <span className="theme-preview-text">Bench 60 × 8</span>
+                  <span className="theme-preview-gauge" />
+                </span>
+              </span>
+              <span className="theme-name">{THEMES[id].label}</span>
+              <span className="theme-description">{THEMES[id].description}</span>
+            </button>
+          ))}
+        </div>
+      </section>
 
       <section className="group">
         <h2 className="group-title">Units</h2>

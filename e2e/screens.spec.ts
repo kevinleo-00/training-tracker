@@ -1,6 +1,7 @@
-// Captures every screen at iPhone size in light and dark mode for visual review.
+// Captures every screen at iPhone size in light and dark mode, and in the pixel theme, for visual review.
 import { expect, type Page, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
+import type { ThemeId } from '../src/domain/types';
 import { fixtureJson } from './fixture';
 
 const DIR = 'test-results/screens';
@@ -12,21 +13,30 @@ async function seed(page: Page, path: string) {
   await expect(page.getByRole('status')).toHaveText('Backup imported.');
 }
 
-for (const scheme of ['light', 'dark'] as const) {
-  test.describe(scheme, () => {
-    test.use({ colorScheme: scheme });
+const variants: { name: string; colorScheme: 'light' | 'dark'; theme: ThemeId }[] = [
+  { name: 'light', colorScheme: 'light', theme: 'classic' },
+  { name: 'dark', colorScheme: 'dark', theme: 'classic' },
+  { name: 'pixel', colorScheme: 'light', theme: 'pixel' },
+];
 
-    test(`screens (${scheme})`, async ({ page }, info) => {
-      const shot = (name: string) => page.screenshot({ path: `${DIR}/${name}-${scheme}.png`, animations: 'disabled' });
+for (const { name: variant, colorScheme, theme } of variants) {
+  test.describe(variant, () => {
+    test.use({ colorScheme });
 
-      await page.goto('./');
+    test(`screens (${variant})`, async ({ page }, info) => {
+      const shot = (name: string) => page.screenshot({ path: `${DIR}/${name}-${variant}.png`, animations: 'disabled' });
+
+      await page.goto('./#/settings');
+      await page.getByRole('radiogroup', { name: 'Theme' }).getByRole('radio', { name: new RegExp(theme, 'i') }).click();
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await page.getByRole('link', { name: 'Workouts' }).click();
       await expect(page.getByText('No workouts yet')).toBeVisible();
       await shot('01-workouts-empty');
       await page.getByRole('link', { name: 'Dashboard' }).click();
       await shot('02-dashboard-empty');
 
       const path = info.outputPath('fixture.json');
-      await writeFile(path, fixtureJson());
+      await writeFile(path, fixtureJson(theme));
       await seed(page, path);
 
       await page.getByRole('link', { name: 'Workouts' }).click();
