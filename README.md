@@ -6,6 +6,7 @@ A personal gym log for iPhone. It runs as a web app that you add to your Home Sc
 - **Rest timer.** Tap a preset (1:00, 1:30, 2:00, 3:00) or let it start when you check off a set. The countdown stays above the tab bar on every screen.
 - **Dashboard.** See max weight and estimated one-rep max per exercise over time, your heaviest set, and your best estimated set. It also shows workouts and volume for each of the last 12 weeks, workouts this week, workouts in the last 30 days, and your weekly streak.
 - **Backup.** Export all data as a JSON file and import it again.
+- **Themes.** Settings → Appearance switches between Classic, which follows light or dark mode, and Pixel, a retro RPG look.
 
 ## Run it locally
 
@@ -35,7 +36,7 @@ Before the first `npm run test:e2e` or `npm run icons`, install the browser:
 npx playwright install webkit
 ```
 
-The screenshot test writes every screen, in light and dark mode, to `test-results/screens/`.
+The screenshot test writes every screen, in light and dark mode and in the pixel theme, to `test-results/screens/`.
 
 ## Deploy it as a static site
 
