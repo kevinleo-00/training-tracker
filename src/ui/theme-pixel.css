@@ -1,0 +1,421 @@
+/*
+ * Pixel theme: retro console RPG menus. Tokens apply to any element with
+ * data-theme="pixel" (so the Settings preview can show this look inside the
+ * classic page); component rules apply only when the whole page is pixel.
+ */
+@import '@fontsource/dotgothic16/latin-400.css';
+
+:root[data-theme='pixel'],
+[data-theme='pixel'] {
+  color-scheme: dark;
+  --bg: #0a0a2a;
+  --surface: #182a84;
+  --surface-2: #0c1658;
+  --text: #ffffff;
+  --text-2: #b4bef0;
+  --border: #4a5cc4;
+  --accent: #ffd23f;
+  --accent-soft: rgba(255, 210, 63, 0.16);
+  --on-accent: #0a0a2a;
+  --done: #52d65a;
+  --done-soft: rgba(82, 214, 90, 0.2);
+  --danger: #ff5a5a;
+  --series-1: #5ad2ff;
+  --series-2: #ff9d3a;
+  --dock-bg: #0a0a2a;
+  --sheet-bg: #182a84;
+  --sheet-cell: #0c1658;
+  --segment-on: #ffd23f;
+  --frame: #ffffff;
+  /* A window border with notched corners, drawn as four offset hard shadows. */
+  --shadow: 0 -3px 0 var(--frame), 0 3px 0 var(--frame), -3px 0 0 var(--frame), 3px 0 0 var(--frame),
+    inset 0 0 0 2px rgba(0, 0, 0, 0.3);
+  --frame-thin: 0 -2px 0 var(--frame), 0 2px 0 var(--frame), -2px 0 0 var(--frame), 2px 0 0 var(--frame);
+  --rounding: 0;
+  --text-size: 16px;
+  --font: 'DotGothic16', ui-monospace, Menlo, monospace;
+  font-synthesis: none;
+}
+
+/* ---------- Pixel primitives ---------- */
+
+/* The blinking ▶ cursor that marks the selected item. */
+:root[data-theme='pixel'] :is(.tab.active > span, .chip.current, .theme-option[aria-checked='true'] .theme-name)::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 14px;
+  margin-top: -7px;
+  background: currentColor;
+  clip-path: polygon(
+    0 0, 2px 0, 2px 2px, 4px 2px, 4px 4px, 6px 4px, 6px 6px, 8px 6px,
+    8px 8px, 6px 8px, 6px 10px, 4px 10px, 4px 12px, 2px 12px, 2px 14px, 0 14px
+  );
+  animation: pixel-blink 1s steps(1, end) infinite;
+}
+
+@keyframes pixel-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme='pixel'] *,
+  :root[data-theme='pixel'] *::before {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+:root[data-theme='pixel'] svg {
+  shape-rendering: crispEdges;
+  image-rendering: pixelated;
+}
+
+:root[data-theme='pixel'] svg :is(path, polyline, line) {
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+/* Every tappable thing presses down one pixel instead of fading. */
+:root[data-theme='pixel']
+  :is(.button, .chip, .check, .icon-button, .theme-option, .workout-card, .pick, .action, .segmented button, .add-set):active {
+  opacity: 1;
+  transform: translate(1px, 1px);
+}
+
+/* ---------- Layout ---------- */
+
+:root[data-theme='pixel'] .screen-header h1 {
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-shadow: 2px 2px 0 #000;
+}
+
+:root[data-theme='pixel'] .dock {
+  border-top: 3px solid var(--frame);
+}
+
+:root[data-theme='pixel'] .tab {
+  font-size: 12px;
+}
+
+:root[data-theme='pixel'] .tab > span {
+  position: relative;
+}
+
+:root[data-theme='pixel'] .tab.active > span::before {
+  right: 100%;
+  margin-right: 4px;
+}
+
+/* ---------- Controls ---------- */
+
+:root[data-theme='pixel'] .button {
+  font-weight: 400;
+  box-shadow: var(--frame-thin), inset -3px -3px 0 rgba(0, 0, 0, 0.3), inset 3px 3px 0 rgba(255, 255, 255, 0.35);
+}
+
+:root[data-theme='pixel'] .button.secondary {
+  background: var(--surface-2);
+  color: var(--text);
+  box-shadow: var(--frame-thin);
+}
+
+:root[data-theme='pixel'] .button:disabled {
+  opacity: 0.45;
+  transform: none;
+}
+
+:root[data-theme='pixel'] .chip {
+  position: relative;
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 400;
+  box-shadow: var(--frame-thin);
+}
+
+:root[data-theme='pixel'] .chip.current {
+  padding-left: 18px;
+  color: var(--accent);
+}
+
+:root[data-theme='pixel'] .chip.current::before {
+  left: 6px;
+}
+
+:root[data-theme='pixel'] .text-field,
+:root[data-theme='pixel'] .select-field {
+  border: 2px solid var(--border);
+  background-color: var(--surface-2);
+  font-weight: 400;
+}
+
+/* The search field's clear button, redrawn as a pixel X. */
+:root[data-theme='pixel'] input[type='search']::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  background: var(--text-2);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h-1zM0 6h1v1h-1zM1 1h1v1h-1zM1 5h1v1h-1zM2 2h1v1h-1zM2 4h1v1h-1zM3 3h1v1h-1zM4 2h1v1h-1zM4 4h1v1h-1zM5 1h1v1h-1zM5 5h1v1h-1zM6 0h1v1h-1zM6 6h1v1h-1z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 7' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h-1zM0 6h1v1h-1zM1 1h1v1h-1zM1 5h1v1h-1zM2 2h1v1h-1zM2 4h1v1h-1zM3 3h1v1h-1zM4 2h1v1h-1zM4 4h1v1h-1zM5 1h1v1h-1zM5 5h1v1h-1zM6 0h1v1h-1zM6 6h1v1h-1z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+:root[data-theme='pixel'] .text-field:focus,
+:root[data-theme='pixel'] .select-field:focus,
+:root[data-theme='pixel'] .number-field:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+:root[data-theme='pixel'] .field,
+:root[data-theme='pixel'] .group-title,
+:root[data-theme='pixel'] .set-head,
+:root[data-theme='pixel'] .tile-label,
+:root[data-theme='pixel'] .timer-sub,
+:root[data-theme='pixel'] .sheet-section h3,
+:root[data-theme='pixel'] .workout-date {
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Lists and cards ---------- */
+
+:root[data-theme='pixel'] .card-list,
+:root[data-theme='pixel'] .entry-list {
+  gap: 14px;
+}
+
+:root[data-theme='pixel'] :is(.workout-name, .entry-header h2, .card-title, .empty-title, .pick-title, .theme-name) {
+  font-weight: 400;
+}
+
+/* ---------- Workout editor ---------- */
+
+:root[data-theme='pixel'] .title-field {
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+:root[data-theme='pixel'] .title-field:focus {
+  box-shadow: 0 3px 0 var(--accent);
+}
+
+:root[data-theme='pixel'] .date-field {
+  border: 2px solid var(--border);
+}
+
+:root[data-theme='pixel'] .number-field {
+  border: 2px solid var(--border);
+  font-size: 20px;
+  font-weight: 400;
+}
+
+:root[data-theme='pixel'] .set-row.done .number-field {
+  border-color: var(--done);
+}
+
+:root[data-theme='pixel'] .set-number {
+  font-weight: 400;
+}
+
+/* A box that fills with a pixel check mark when done. */
+:root[data-theme='pixel'] .check {
+  position: relative;
+  border: 0;
+  background: var(--surface-2);
+  box-shadow: var(--frame-thin);
+}
+
+:root[data-theme='pixel'] .check svg {
+  display: none;
+}
+
+:root[data-theme='pixel'] .check::after {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 7px;
+  width: 3px;
+  height: 3px;
+  box-shadow:
+    24px 0 0 currentColor,
+    21px 3px 0 currentColor, 24px 3px 0 currentColor,
+    0 6px 0 currentColor, 18px 6px 0 currentColor, 21px 6px 0 currentColor,
+    0 9px 0 currentColor, 3px 9px 0 currentColor, 15px 9px 0 currentColor, 18px 9px 0 currentColor,
+    3px 12px 0 currentColor, 6px 12px 0 currentColor, 12px 12px 0 currentColor, 15px 12px 0 currentColor,
+    6px 15px 0 currentColor, 9px 15px 0 currentColor, 12px 15px 0 currentColor,
+    9px 18px 0 currentColor;
+}
+
+:root[data-theme='pixel'] .check[aria-pressed='true'] {
+  background: var(--done);
+  color: var(--on-accent);
+}
+
+/* ---------- Rest timer: an HP gauge along the top edge ---------- */
+
+:root[data-theme='pixel'] .timer-bar {
+  border-bottom: 2px solid var(--border);
+}
+
+:root[data-theme='pixel'] {
+  /* Room for the gauge above the timer controls. */
+  --timer-h: 70px;
+}
+
+:root[data-theme='pixel'] .timer-bar.active {
+  padding-top: 18px;
+}
+
+:root[data-theme='pixel'] .timer-bar.active::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: var(--gutter);
+  right: var(--gutter);
+  height: 8px;
+  background: var(--surface-2);
+  box-shadow: var(--frame-thin);
+}
+
+:root[data-theme='pixel'] .timer-progress {
+  top: 4px;
+  left: var(--gutter);
+  right: var(--gutter);
+  height: 8px;
+  background: repeating-linear-gradient(to right, var(--done) 0 6px, #2f9a38 6px 8px);
+  transform: none;
+  clip-path: inset(0 calc((1 - var(--progress)) * 100%) 0 0);
+  transition: none;
+}
+
+:root[data-theme='pixel'] :is(.timer-time, .timer-label) {
+  font-weight: 400;
+}
+
+:root[data-theme='pixel'] .timer-bar.active .chip {
+  background: var(--surface-2);
+  box-shadow: var(--frame-thin);
+}
+
+:root[data-theme='pixel'] .timer-bar.finished {
+  color: var(--on-accent);
+  animation: pixel-flash 0.5s steps(1, end) 3;
+}
+
+@keyframes pixel-flash {
+  50% {
+    background: var(--accent);
+  }
+}
+
+/* ---------- Sheets ---------- */
+
+:root[data-theme='pixel'] .sheet {
+  box-shadow: 0 -3px 0 var(--frame);
+  animation-timing-function: steps(4, end);
+}
+
+:root[data-theme='pixel'] .sheet-header h2 {
+  font-weight: 400;
+}
+
+:root[data-theme='pixel'] .pick-list,
+:root[data-theme='pixel'] .action-list {
+  box-shadow: var(--frame-thin);
+}
+
+:root[data-theme='pixel'] .pick-list li + li,
+:root[data-theme='pixel'] .action + .action {
+  border-top: 2px solid var(--border);
+}
+
+:root[data-theme='pixel'] .pick.create {
+  font-weight: 400;
+}
+
+/* ---------- Dashboard ---------- */
+
+:root[data-theme='pixel'] .tiles {
+  gap: 14px;
+}
+
+:root[data-theme='pixel'] :is(.tile-value, .record-value, .chart-readout, .legend-item strong) {
+  font-weight: 400;
+}
+
+:root[data-theme='pixel'] .record {
+  box-shadow: inset 0 0 0 2px var(--border);
+}
+
+:root[data-theme='pixel'] .legend-swatch {
+  width: 10px;
+  height: 10px;
+}
+
+:root[data-theme='pixel'] :is(.chart-grid line, .chart-crosshair) {
+  stroke-dasharray: 2 2;
+}
+
+:root[data-theme='pixel'] .chart-line {
+  stroke-width: 3;
+}
+
+:root[data-theme='pixel'] :is(.chart-dot, .chart-bar) {
+  rx: 0;
+  ry: 0;
+}
+
+:root[data-theme='pixel'] :is(.chart-grid text, .chart-axis, .chart-axis text) {
+  font-size: 12px;
+}
+
+/* ---------- Settings ---------- */
+
+:root[data-theme='pixel'] .segmented {
+  box-shadow: var(--frame-thin);
+}
+
+:root[data-theme='pixel'] .segmented button {
+  font-weight: 400;
+}
+
+:root[data-theme='pixel'] .segmented button[aria-checked='true'] {
+  color: var(--on-accent);
+  box-shadow: none;
+}
+
+:root[data-theme='pixel'] .switch {
+  box-shadow: var(--frame-thin);
+  transition: none;
+}
+
+:root[data-theme='pixel'] .switch::after {
+  background: var(--text);
+  box-shadow: none;
+  transition: none;
+}
+
+:root[data-theme='pixel'] :is(.toggle-row, .plain-list li + li) {
+  border-color: var(--border);
+  border-width: 2px;
+}
+
+:root[data-theme='pixel'] .theme-option[aria-checked='true'] {
+  box-shadow: 0 -3px 0 var(--accent), 0 3px 0 var(--accent), -3px 0 0 var(--accent), 3px 0 0 var(--accent);
+}
+
+:root[data-theme='pixel'] .theme-option[aria-checked='true'] .theme-name {
+  position: relative;
+  padding-left: 14px;
+}
+
+:root[data-theme='pixel'] .theme-option[aria-checked='true'] .theme-name::before {
+  left: 0;
+}

@@ -5,7 +5,9 @@ import { idbPersistence, requestPersistentStorage } from './store/idbPersistence
 import { StoreContext } from './store/react';
 import { createStore } from './store/store';
 import { App } from './ui/App';
+import { applyTheme } from './ui/themes';
 import './ui/styles.css';
+import './ui/theme-pixel.css';
 
 registerSW({ immediate: true });
 
@@ -20,6 +22,10 @@ const { notice } = await store.load().catch(() => ({
   notice: 'This browser blocked storage, so workouts will not be saved. Private Browsing can cause this.',
 }));
 void requestPersistentStorage();
+
+const syncTheme = () => applyTheme(store.getState().settings.theme);
+syncTheme();
+store.subscribe(syncTheme);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

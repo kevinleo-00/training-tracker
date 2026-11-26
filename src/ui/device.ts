@@ -17,22 +17,30 @@ export function unlockAudio() {
   }
 }
 
-/** Three short beeps plus a vibration where supported. */
-export function alertRestOver() {
+/** A short alert sound: each note starts `at` seconds in and lasts `length` seconds. */
+export interface Tune {
+  wave: OscillatorType;
+  volume: number;
+  notes: { hz: number; at: number; length: number }[];
+}
+
+/** Plays `tune` plus a vibration where supported. */
+export function alertRestOver(tune: Tune) {
   navigator.vibrate?.([200, 100, 200]);
   if (!audio || audio.state !== 'running') return;
   const t0 = audio.currentTime + 0.05;
-  for (let i = 0; i < 3; i++) {
+  for (const note of tune.notes) {
     const osc = audio.createOscillator();
     const gain = audio.createGain();
-    osc.frequency.value = 880;
-    const t = t0 + i * 0.25;
+    osc.type = tune.wave;
+    osc.frequency.value = note.hz;
+    const t = t0 + note.at;
     gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(0.4, t + 0.01);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
+    gain.gain.exponentialRampToValueAtTime(tune.volume, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + note.length);
     osc.connect(gain).connect(audio.destination);
     osc.start(t);
-    osc.stop(t + 0.16);
+    osc.stop(t + note.length + 0.01);
   }
 }
 

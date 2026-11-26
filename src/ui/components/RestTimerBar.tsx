@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { type CSSProperties, useEffect, useState } from 'react';
 import { remainingMs } from '../../domain/timer';
 import { useAppState } from '../../store/react';
 import { restTimer, useRestTimer } from '../../store/restTimer';
 import { alertRestOver, useWakeLock } from '../device';
 import { formatClock, formatSeconds } from '../format';
+import { THEMES } from '../themes';
 import { useStartRest } from '../useStartRest';
 import { Icon } from './Icon';
 
@@ -33,8 +34,8 @@ export function RestTimerBar() {
   useWakeLock(running);
 
   useEffect(() => {
-    if (running && now >= timer.endsAt && restTimer.tick()) alertRestOver();
-  }, [running, now, timer]);
+    if (running && now >= timer.endsAt && restTimer.tick()) alertRestOver(THEMES[settings.theme].restOver);
+  }, [running, now, timer, settings.theme]);
 
   if (timer.status === 'idle') {
     return (
@@ -44,7 +45,7 @@ export function RestTimerBar() {
           Rest
         </span>
         {settings.restPresetsSec.map((sec) => (
-          <button key={sec} type="button" className="chip" onClick={() => startRest(sec)}>
+          <button key={sec} type="button" className={sec === settings.lastRestSec ? 'chip current' : 'chip'} onClick={() => startRest(sec)}>
             {formatSeconds(sec)}
           </button>
         ))}
@@ -65,7 +66,7 @@ export function RestTimerBar() {
   const progress = timer.durationMs > 0 ? left / timer.durationMs : 0;
   return (
     <div className="timer-bar active" role="timer" aria-label="Rest timer">
-      <div className="timer-progress" style={{ transform: `scaleX(${progress})` }} />
+      <div className="timer-progress" style={{ '--progress': progress } as CSSProperties} />
       <div className="timer-readout">
         <span className="timer-time">{formatClock(left)}</span>
         <span className="timer-sub">{timer.status === 'paused' ? 'Paused' : 'Resting'}</span>
