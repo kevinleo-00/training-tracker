@@ -129,12 +129,18 @@ describe('reduce', () => {
       autoStartRest: true,
       lastRestSec: 120,
       theme: 'classic',
+      language: 'system',
     });
   });
 
   it('switches the theme and leaves the other settings alone', () => {
     const s = run({ type: 'settings/update', patch: { theme: 'pixel' } });
     expect(s.settings).toEqual({ ...emptyState().settings, theme: 'pixel' });
+  });
+
+  it('switches the language and leaves the other settings alone', () => {
+    const s = run({ type: 'settings/update', patch: { language: 'zh-Hant' } });
+    expect(s.settings).toEqual({ ...emptyState().settings, language: 'zh-Hant' });
   });
 
   it('replaces the whole state', () => {

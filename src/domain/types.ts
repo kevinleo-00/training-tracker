@@ -29,12 +29,20 @@ export interface Workout {
 export const THEME_IDS = ['classic', 'pixel'] as const;
 export type ThemeId = (typeof THEME_IDS)[number];
 
+/** Every language the UI is translated into, as BCP 47 tags. */
+export const LOCALES = ['en', 'zh-Hans', 'zh-Hant', 'ja', 'ko'] as const;
+export type Locale = (typeof LOCALES)[number];
+/** The language setting: a chosen locale, or 'system' to follow the device's preferred languages. */
+export const LANGUAGES = ['system', ...LOCALES] as const;
+export type Language = (typeof LANGUAGES)[number];
+
 export interface Settings {
   unit: 'kg' | 'lb';
   restPresetsSec: number[];
   autoStartRest: boolean;
   lastRestSec: number;
   theme: ThemeId;
+  language: Language;
 }
 export interface AppState {
   version: 1;
@@ -49,6 +57,7 @@ const DEFAULT_SETTINGS: Settings = {
   autoStartRest: true,
   lastRestSec: 90,
   theme: 'classic',
+  language: 'system',
 };
 
 export function emptyState(): AppState {

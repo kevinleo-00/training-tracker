@@ -48,6 +48,7 @@ describe('backup', () => {
     ['empty rest presets', mutate((r) => (r.settings.restPresetsSec = []))],
     ['a missing exercises map', mutate((r) => delete r.exercises)],
     ['an unknown theme', mutate((r) => (r.settings.theme = 'neon'))],
+    ['an unknown language', mutate((r) => (r.settings.language = 'fr'))],
   ])('rejects %s with a message', (_label, text) => {
     const result = parseAppState(text);
     expect(result.ok).toBe(false);
@@ -67,6 +68,21 @@ describe('backup', () => {
   it('names the theme field when it rejects an unknown theme', () => {
     const result = parseAppState(mutate((r) => (r.settings.theme = 'neon')));
     expect(result.ok ? null : result.error).toMatch(/settings\.theme/);
+  });
+
+  it('follows the device language for data saved before the language setting existed', () => {
+    const result = parseAppState(mutate((r) => delete r.settings.language));
+    expect(result).toEqual({ ok: true, state: { ...sample(), settings: { ...sample().settings, language: 'system' } } });
+  });
+
+  it.each(['system', 'en', 'zh-Hans', 'zh-Hant', 'ja', 'ko'])('keeps the chosen language %s', (language) => {
+    const result = parseAppState(mutate((r) => (r.settings.language = language)));
+    expect(result.ok && result.state.settings.language).toBe(language);
+  });
+
+  it('names the language field when it rejects an unknown language', () => {
+    const result = parseAppState(mutate((r) => (r.settings.language = 'zh-CN')));
+    expect(result.ok ? null : result.error).toMatch(/settings\.language/);
   });
 
   it('drops unknown fields instead of carrying them into state', () => {

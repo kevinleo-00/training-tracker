@@ -4,6 +4,8 @@ import {
   type EntryId,
   type Exercise,
   type ExerciseId,
+  type Language,
+  LANGUAGES,
   type SetId,
   type Settings,
   THEME_IDS,
@@ -132,6 +134,7 @@ function settings(raw: unknown): Settings {
     autoStartRest: s.autoStartRest,
     lastRestSec: nonNegative(s.lastRestSec, 'settings.lastRestSec', true),
     theme: theme(s.theme),
+    language: language(s.language),
   };
 }
 
@@ -140,4 +143,11 @@ function theme(v: unknown): ThemeId {
   if (v === undefined) return 'classic';
   if (!THEME_IDS.includes(v as ThemeId)) fail('settings.theme', THEME_IDS.map((id) => `"${id}"`).join(' or '));
   return v as ThemeId;
+}
+
+/** Data saved before the language setting existed has no `language`, so it follows the device. */
+function language(v: unknown): Language {
+  if (v === undefined) return 'system';
+  if (!LANGUAGES.includes(v as Language)) fail('settings.language', LANGUAGES.map((id) => `"${id}"`).join(' or '));
+  return v as Language;
 }
