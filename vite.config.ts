@@ -27,6 +27,12 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,webmanifest,woff2}'],
+        // The pixel theme's Japanese glyphs are about 400 KB, so only readers who show them download
+        // the file, and the service worker keeps it for offline use from then on.
+        globIgnores: ['**/dotgothic16-japanese-*'],
+        runtimeCaching: [
+          { urlPattern: /dotgothic16-japanese-[^/]*\.woff2$/, handler: 'CacheFirst', options: { cacheName: 'japanese-pixel-font' } },
+        ],
       },
     }),
   ],

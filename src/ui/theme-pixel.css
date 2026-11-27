@@ -5,6 +5,21 @@
  */
 @import '@fontsource/dotgothic16/latin-400.css';
 
+/*
+ * DotGothic16's kana and kanji, under their own family name so only text
+ * tagged Japanese uses them and only Japanese readers download the file.
+ * Chinese and Korean are not given these glyphs: the font lacks many Hanzi
+ * and all Hangul, so a word would mix pixel and smooth characters. Their CJK
+ * text falls back to the system font while Latin letters and digits stay pixel.
+ */
+@font-face {
+  font-family: 'DotGothic16 Japanese';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('@fontsource/dotgothic16/files/dotgothic16-japanese-400-normal.woff2') format('woff2');
+}
+
 :root[data-theme='pixel'],
 [data-theme='pixel'] {
   color-scheme: dark;
@@ -33,8 +48,29 @@
   --frame-thin: 0 -2px 0 var(--frame), 0 2px 0 var(--frame), -2px 0 0 var(--frame), 2px 0 0 var(--frame);
   --rounding: 0;
   --text-size: 16px;
-  --font: 'DotGothic16', ui-monospace, Menlo, monospace;
+  --font-pixel: 'DotGothic16', ui-monospace, Menlo, monospace;
+  --font-pixel-ja: 'DotGothic16', 'DotGothic16 Japanese', ui-monospace, Menlo, monospace;
+  --font: var(--font-pixel);
   font-synthesis: none;
+}
+
+:root[data-theme='pixel']:lang(ja),
+[data-theme='pixel']:lang(ja) {
+  --font: var(--font-pixel-ja);
+}
+
+/* An element tagged with its own language, like a language's name in Settings, takes that language's stack. */
+:root[data-theme='pixel'] [lang] {
+  font-family: var(--font-pixel);
+}
+
+:root[data-theme='pixel'] [lang]:lang(ja) {
+  font-family: var(--font-pixel-ja);
+}
+
+/* DotGothic16's half-em space reads as a gap between Hangul words set in the system font. */
+:root[data-theme='pixel']:lang(ko) {
+  word-spacing: -0.2em;
 }
 
 /* ---------- Pixel primitives ---------- */
