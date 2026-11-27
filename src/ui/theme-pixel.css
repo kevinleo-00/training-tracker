@@ -6,18 +6,35 @@
 @import '@fontsource/dotgothic16/latin-400.css';
 
 /*
- * DotGothic16's kana and kanji, under their own family name so only text
- * tagged Japanese uses them and only Japanese readers download the file.
- * Chinese and Korean are not given these glyphs: the font lacks many Hanzi
- * and all Hangul, so a word would mix pixel and smooth characters. Their CJK
- * text falls back to the system font while Latin letters and digits stay pixel.
+ * Pixel glyphs for each CJK language, under their own family names so only
+ * text tagged with that language uses them and only its readers download the
+ * file. Latin letters and digits stay DotGothic16 in every language.
  */
 @font-face {
   font-family: 'DotGothic16 Japanese';
-  font-style: normal;
   font-display: swap;
-  font-weight: 400;
   src: url('@fontsource/dotgothic16/files/dotgothic16-japanese-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Fusion Pixel SC';
+  font-display: swap;
+  src: url('@fontsource/fusion-pixel-12px-proportional-sc/files/fusion-pixel-12px-proportional-sc-latin-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Fusion Pixel TC';
+  font-display: swap;
+  src: url('@fontsource/fusion-pixel-12px-proportional-tc/files/fusion-pixel-12px-proportional-tc-latin-400-normal.woff2')
+    format('woff2');
+}
+
+@font-face {
+  font-family: 'Fusion Pixel KR';
+  font-display: swap;
+  src: url('@fontsource/fusion-pixel-12px-proportional-kr/files/fusion-pixel-12px-proportional-kr-latin-400-normal.woff2')
+    format('woff2');
 }
 
 :root[data-theme='pixel'],
@@ -49,28 +66,33 @@
   --rounding: 0;
   --text-size: 16px;
   --font-pixel: 'DotGothic16', ui-monospace, Menlo, monospace;
-  --font-pixel-ja: 'DotGothic16', 'DotGothic16 Japanese', ui-monospace, Menlo, monospace;
   --font: var(--font-pixel);
   font-synthesis: none;
 }
 
-:root[data-theme='pixel']:lang(ja),
-[data-theme='pixel']:lang(ja) {
-  --font: var(--font-pixel-ja);
+/* The page's language picks its pixel CJK glyphs, and so does an element tagged with its own language, like a language's name in Settings. */
+[data-theme='pixel']:lang(ja),
+[data-theme='pixel'] [lang]:lang(ja) {
+  --font: 'DotGothic16', 'DotGothic16 Japanese', var(--font-pixel);
 }
 
-/* An element tagged with its own language, like a language's name in Settings, takes that language's stack. */
+[data-theme='pixel']:lang(zh-Hans),
+[data-theme='pixel'] [lang]:lang(zh-Hans) {
+  --font: 'DotGothic16', 'Fusion Pixel SC', var(--font-pixel);
+}
+
+[data-theme='pixel']:lang(zh-Hant),
+[data-theme='pixel'] [lang]:lang(zh-Hant) {
+  --font: 'DotGothic16', 'Fusion Pixel TC', var(--font-pixel);
+}
+
+[data-theme='pixel']:lang(ko),
+[data-theme='pixel'] [lang]:lang(ko) {
+  --font: 'DotGothic16', 'Fusion Pixel KR', var(--font-pixel);
+}
+
 :root[data-theme='pixel'] [lang] {
-  font-family: var(--font-pixel);
-}
-
-:root[data-theme='pixel'] [lang]:lang(ja) {
-  font-family: var(--font-pixel-ja);
-}
-
-/* DotGothic16's half-em space reads as a gap between Hangul words set in the system font. */
-:root[data-theme='pixel']:lang(ko) {
-  word-spacing: -0.2em;
+  font-family: var(--font);
 }
 
 /* ---------- Pixel primitives ---------- */
