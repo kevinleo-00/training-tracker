@@ -11,6 +11,12 @@ export interface Persistence {
 
 export type Store = ReturnType<typeof createStore>;
 
+/**
+ * Something the person should know about storage, shown above the first screen.
+ * For 'unreadable', `detail` is the developer-facing reason the stored data failed validation.
+ */
+export type Notice = { kind: 'storage-blocked' } | { kind: 'unreadable'; detail: string };
+
 export function createStore(persistence: Persistence, delayMs = 300) {
   let state = emptyState();
   let pending: ReturnType<typeof setTimeout> | null = null;
@@ -31,7 +37,7 @@ export function createStore(persistence: Persistence, delayMs = 300) {
       return () => void listeners.delete(listener);
     },
 
-    async load(): Promise<{ notice: string | null }> {
+    async load(): Promise<{ notice: Notice | null }> {
       const raw = await persistence.load();
       if (raw === undefined) return { notice: null };
       const result = validateAppState(raw);
@@ -40,7 +46,7 @@ export function createStore(persistence: Persistence, delayMs = 300) {
         return { notice: null };
       }
       await persistence.quarantine(raw);
-      return { notice: `Your saved data could not be read, so the app started fresh. The old copy was kept aside. (${result.error})` };
+      return { notice: { kind: 'unreadable', detail: result.error.detail } };
     },
 
     dispatch(action: Action) {

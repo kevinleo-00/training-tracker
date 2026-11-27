@@ -1,13 +1,12 @@
 import type { AppState, Workout } from '../domain/types';
+import type { Messages } from './i18n';
 
 /** Newest first; same-day workouts keep a stable order. */
 export function sortedWorkouts(state: AppState): Workout[] {
   return Object.values(state.workouts).sort((a, b) => (a.date === b.date ? a.id.localeCompare(b.id) : a.date < b.date ? 1 : -1));
 }
 
-export function workoutSummary(w: Workout): string {
+export function workoutSummary(w: Workout, t: Messages): string {
   const sets = w.entries.flatMap((e) => e.sets);
-  const done = sets.filter((s) => s.done).length;
-  const exercises = `${w.entries.length} exercise${w.entries.length === 1 ? '' : 's'}`;
-  return sets.length === 0 ? exercises : `${exercises} · ${done}/${sets.length} sets done`;
+  return t.workouts.summary(w.entries.length, sets.filter((s) => s.done).length, sets.length);
 }

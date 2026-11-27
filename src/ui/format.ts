@@ -1,5 +1,6 @@
 import { addDays, formatDate } from '../domain/dates';
-import type { LocalDate } from '../domain/types';
+import type { LocalDate, Locale } from '../domain/types';
+import type { I18n } from './i18n';
 
 /** 102.5 -> "102.5", 100 -> "100", 72.125 -> "72.13". */
 export function formatNumber(n: number): string {
@@ -7,8 +8,8 @@ export function formatNumber(n: number): string {
 }
 
 /** 12345.5 -> "12,345.5" in the reader's locale, for display only. */
-export function formatGrouped(n: number): string {
-  return n.toLocaleString(undefined, { maximumFractionDigits: 1 });
+export function formatGrouped(n: number, locale: Locale): string {
+  return n.toLocaleString(locale, { maximumFractionDigits: 1 });
 }
 
 /** Milliseconds left -> "m:ss", rounding up so 0:00 means done. */
@@ -21,23 +22,21 @@ export function formatSeconds(sec: number): string {
   return formatClock(sec * 1000);
 }
 
-/** 12_345 -> "12.3k". */
-export function formatCompact(n: number): string {
-  if (n >= 10_000) return `${Math.round(n / 1000)}k`;
-  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k`;
-  return formatNumber(n);
+/** A short axis label: 12_345 -> "12K" in English, "1.2万" in Japanese. */
+export function formatCompact(n: number, locale: Locale): string {
+  return n.toLocaleString(locale, { notation: 'compact' });
 }
 
-export function dayLabel(date: LocalDate, today: LocalDate): string {
-  if (date === today) return 'Today';
-  if (date === addDays(today, -1)) return 'Yesterday';
-  if (date === addDays(today, 1)) return 'Tomorrow';
+export function dayLabel(date: LocalDate, today: LocalDate, { locale, t }: I18n): string {
+  if (date === today) return t.dates.today;
+  if (date === addDays(today, -1)) return t.dates.yesterday;
+  if (date === addDays(today, 1)) return t.dates.tomorrow;
   const sameYear = date.slice(0, 4) === today.slice(0, 4);
-  return formatDate(date, { weekday: 'short', month: 'short', day: 'numeric', ...(sameYear ? {} : { year: 'numeric' }) });
+  return formatDate(date, locale, { weekday: 'short', month: 'short', day: 'numeric', ...(sameYear ? {} : { year: 'numeric' }) });
 }
 
-export function shortDate(date: LocalDate): string {
-  return formatDate(date, { month: 'short', day: 'numeric' });
+export function shortDate(date: LocalDate, locale: Locale): string {
+  return formatDate(date, locale, { month: 'short', day: 'numeric' });
 }
 
 /** Parses what a person typed in a number field; accepts a comma decimal separator. */

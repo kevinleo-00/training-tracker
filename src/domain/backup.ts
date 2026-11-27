@@ -4,6 +4,8 @@ import {
   type EntryId,
   type Exercise,
   type ExerciseId,
+  type Language,
+  LANGUAGES,
   type SetId,
   type Settings,
   THEME_IDS,
@@ -14,7 +16,10 @@ import {
   type WorkSet,
 } from './types';
 
-export type ParseResult = { ok: true; state: AppState } | { ok: false; error: string };
+/** A rejected backup. `detail` names the offending field for developers, so it is not translated. */
+export type InvalidBackup = { kind: 'invalid'; detail: string };
+export type BackupError = { kind: 'not-json' } | InvalidBackup;
+export type ParseResult = { ok: true; state: AppState } | { ok: false; error: BackupError };
 
 class Invalid extends Error {}
 
@@ -27,17 +32,17 @@ export function parseAppState(text: string): ParseResult {
   try {
     raw = JSON.parse(text);
   } catch {
-    return { ok: false, error: 'This file is not valid JSON.' };
+    return { ok: false, error: { kind: 'not-json' } };
   }
   return validateAppState(raw);
 }
 
 /** Checks untrusted data (a backup file, a stored document) and rebuilds it as an AppState. */
-export function validateAppState(raw: unknown): ParseResult {
+export function validateAppState(raw: unknown): { ok: true; state: AppState } | { ok: false; error: InvalidBackup } {
   try {
     return { ok: true, state: appState(raw) };
   } catch (e) {
-    if (e instanceof Invalid) return { ok: false, error: `Not a valid backup: ${e.message}` };
+    if (e instanceof Invalid) return { ok: false, error: { kind: 'invalid', detail: e.message } };
     throw e;
   }
 }
@@ -132,6 +137,7 @@ function settings(raw: unknown): Settings {
     autoStartRest: s.autoStartRest,
     lastRestSec: nonNegative(s.lastRestSec, 'settings.lastRestSec', true),
     theme: theme(s.theme),
+    language: language(s.language),
   };
 }
 
@@ -140,4 +146,11 @@ function theme(v: unknown): ThemeId {
   if (v === undefined) return 'classic';
   if (!THEME_IDS.includes(v as ThemeId)) fail('settings.theme', THEME_IDS.map((id) => `"${id}"`).join(' or '));
   return v as ThemeId;
+}
+
+/** Data saved before the language setting existed has no `language`, so it follows the device. */
+function language(v: unknown): Language {
+  if (v === undefined) return 'system';
+  if (!LANGUAGES.includes(v as Language)) fail('settings.language', LANGUAGES.map((id) => `"${id}"`).join(' or '));
+  return v as Language;
 }

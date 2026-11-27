@@ -1,30 +1,31 @@
 import { type ChangeEvent, useEffect, useRef, useState } from 'react';
-import { parseAppState } from '../../domain/backup';
-import { type AppState, type Exercise, THEME_IDS } from '../../domain/types';
+import { type BackupError, parseAppState } from '../../domain/backup';
+import { type AppState, type Exercise, type Language, LANGUAGES, THEME_IDS } from '../../domain/types';
 import { useAppState, useDispatch } from '../../store/react';
 import { exportBackup } from '../backupFile';
 import { Icon } from '../components/Icon';
 import { NumberField } from '../components/NumberField';
 import { ConfirmSheet, Sheet } from '../components/Sheet';
 import { formatSeconds } from '../format';
-import { THEMES } from '../themes';
+import { deviceLanguages, LANGUAGE_NAMES, type Messages, resolveLocale, useI18n } from '../i18n';
 
 export function SettingsScreen({ onImported }: { onImported: () => Promise<void> }) {
   const state = useAppState();
   const dispatch = useDispatch();
+  const { locale, t } = useI18n();
   const { settings } = state;
   const [renaming, setRenaming] = useState<Exercise | null>(null);
-  const exercises = Object.values(state.exercises).sort((a, b) => a.name.localeCompare(b.name));
+  const exercises = Object.values(state.exercises).sort((a, b) => a.name.localeCompare(b.name, locale));
 
   return (
     <>
       <header className="screen-header">
-        <h1>Settings</h1>
+        <h1>{t.tabs.settings}</h1>
       </header>
 
       <section className="group">
-        <h2 className="group-title">Appearance</h2>
-        <div className="theme-picker" role="radiogroup" aria-label="Theme">
+        <h2 className="group-title">{t.settings.appearance}</h2>
+        <div className="theme-picker" role="radiogroup" aria-label={t.settings.theme}>
           {THEME_IDS.map((id) => (
             <button
               key={id}
@@ -36,22 +37,24 @@ export function SettingsScreen({ onImported }: { onImported: () => Promise<void>
             >
               <span className="theme-preview" data-theme={id} aria-hidden="true">
                 <span className="theme-preview-window">
-                  <span className="theme-preview-text">Bench 60 × 8</span>
+                  <span className="theme-preview-text">{t.settings.themePreview}</span>
                   <span className="theme-preview-gauge" />
                 </span>
               </span>
-              <span className="theme-name">{THEMES[id].label}</span>
-              <span className="theme-description">{THEMES[id].description}</span>
+              <span className="theme-name">{t.themes[id].label}</span>
+              <span className="theme-description">{t.themes[id].description}</span>
             </button>
           ))}
         </div>
       </section>
 
+      <LanguagePicker language={settings.language} />
+
       <section className="group">
-        <h2 className="group-title">Units</h2>
+        <h2 className="group-title">{t.settings.units}</h2>
         <div className="card row">
-          <span>Weight unit</span>
-          <div className="segmented" role="radiogroup" aria-label="Weight unit">
+          <span>{t.settings.weightUnit}</span>
+          <div className="segmented" role="radiogroup" aria-label={t.settings.weightUnit}>
             {(['kg', 'lb'] as const).map((unit) => (
               <button
                 key={unit}
@@ -65,14 +68,14 @@ export function SettingsScreen({ onImported }: { onImported: () => Promise<void>
             ))}
           </div>
         </div>
-        <p className="group-note">A label only. Changing it does not convert logged weights.</p>
+        <p className="group-note">{t.settings.unitNote}</p>
       </section>
 
       <section className="group">
-        <h2 className="group-title">Rest timer</h2>
+        <h2 className="group-title">{t.settings.restTimer}</h2>
         <div className="card">
           <label className="row toggle-row">
-            <span>Start rest when a set is checked</span>
+            <span>{t.settings.autoStart}</span>
             <input
               type="checkbox"
               className="switch"
@@ -82,20 +85,20 @@ export function SettingsScreen({ onImported }: { onImported: () => Promise<void>
           </label>
           <RestPresets presets={settings.restPresetsSec} />
         </div>
-        <p className="group-note">Auto-start uses the last preset you tapped ({formatSeconds(settings.lastRestSec)}).</p>
+        <p className="group-note">{t.settings.autoStartNote(formatSeconds(settings.lastRestSec))}</p>
       </section>
 
       <section className="group">
-        <h2 className="group-title">Exercises</h2>
+        <h2 className="group-title">{t.settings.exercises}</h2>
         {exercises.length === 0 ? (
-          <p className="group-note">Exercises you add to a workout show up here so you can rename them.</p>
+          <p className="group-note">{t.settings.exercisesEmpty}</p>
         ) : (
           <ul className="card plain-list">
             {exercises.map((x) => (
               <li key={x.id}>
                 <button type="button" className="row list-button" onClick={() => setRenaming(x)}>
                   <span>{x.name}</span>
-                  <span className="muted">Rename</span>
+                  <span className="muted">{t.settings.rename}</span>
                 </button>
               </li>
             ))}
@@ -110,22 +113,62 @@ export function SettingsScreen({ onImported }: { onImported: () => Promise<void>
   );
 }
 
+function LanguagePicker({ language }: { language: Language }) {
+  const dispatch = useDispatch();
+  const { t } = useI18n();
+  const device = resolveLocale('system', deviceLanguages());
+
+  return (
+    <section className="group">
+      <h2 className="group-title">{t.settings.language}</h2>
+      <div className="card choice-list" role="radiogroup" aria-label={t.settings.language}>
+        {LANGUAGES.map((value) => (
+          <button
+            key={value}
+            type="button"
+            role="radio"
+            className="choice"
+            aria-checked={language === value}
+            onClick={() => dispatch({ type: 'settings/update', patch: { language: value } })}
+          >
+            {/* Each language is named in its own script, tagged so it gets that language's glyphs. */}
+            {value === 'system' ? (
+              <>
+                <span className="choice-label">{t.settings.automatic}</span>
+                <span className="choice-detail" lang={device}>
+                  {LANGUAGE_NAMES[device]}
+                </span>
+              </>
+            ) : (
+              <span className="choice-label" lang={value}>
+                {LANGUAGE_NAMES[value]}
+              </span>
+            )}
+            <Icon name="check" size={20} />
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function RestPresets({ presets }: { presets: number[] }) {
   const dispatch = useDispatch();
+  const { t } = useI18n();
   const [seconds, setSeconds] = useState(0);
   const save = (next: number[]) =>
     dispatch({ type: 'settings/update', patch: { restPresetsSec: [...new Set(next)].sort((a, b) => a - b) } });
 
   return (
     <div className="presets-editor">
-      <span>Presets</span>
+      <span>{t.settings.presets}</span>
       <div className="chip-row">
         {presets.map((sec) => (
           <span key={sec} className="chip removable">
             {formatSeconds(sec)}
             <button
               type="button"
-              aria-label={`Remove ${formatSeconds(sec)} preset`}
+              aria-label={t.settings.removePreset(formatSeconds(sec))}
               disabled={presets.length === 1}
               onClick={() => save(presets.filter((p) => p !== sec))}
             >
@@ -142,10 +185,10 @@ function RestPresets({ presets }: { presets: number[] }) {
           setSeconds(0);
         }}
       >
-        <NumberField label="New preset in seconds" integer placeholder="45" value={seconds} onCommit={setSeconds} />
-        <span className="muted">seconds</span>
+        <NumberField label={t.settings.newPreset} integer placeholder="45" value={seconds} onCommit={setSeconds} />
+        <span className="muted">{t.settings.seconds}</span>
         <button type="submit" className="button small secondary" disabled={seconds <= 0}>
-          Add
+          {t.common.add}
         </button>
       </form>
     </div>
@@ -154,9 +197,10 @@ function RestPresets({ presets }: { presets: number[] }) {
 
 function RenameSheet({ exercise, onClose }: { exercise: Exercise; onClose: () => void }) {
   const dispatch = useDispatch();
+  const { t } = useI18n();
   const [name, setName] = useState(exercise.name);
   return (
-    <Sheet title="Rename exercise" onClose={onClose}>
+    <Sheet title={t.settings.renameTitle} onClose={onClose}>
       <form
         className="stack"
         onSubmit={(e) => {
@@ -165,20 +209,24 @@ function RenameSheet({ exercise, onClose }: { exercise: Exercise; onClose: () =>
           onClose();
         }}
       >
-        <input className="text-field" autoFocus aria-label="Exercise name" value={name} onChange={(e) => setName(e.currentTarget.value)} />
+        <input className="text-field" autoFocus aria-label={t.picker.name} value={name} onChange={(e) => setName(e.currentTarget.value)} />
         <button type="submit" className="button" disabled={!name.trim()}>
-          Save
+          {t.common.save}
         </button>
       </form>
     </Sheet>
   );
 }
 
+const backupErrorText = (error: BackupError, t: Messages) =>
+  error.kind === 'not-json' ? t.backup.notJson : t.backup.invalid(error.detail);
+
 function Backup({ state, onImported }: { state: AppState; onImported: () => Promise<void> }) {
   const dispatch = useDispatch();
+  const { t } = useI18n();
   const input = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<{ file: string; state: AppState } | null>(null);
-  const [message, setMessage] = useState<{ kind: 'error' | 'ok'; text: string } | null>(null);
+  const [message, setMessage] = useState<{ kind: 'error'; error: BackupError } | { kind: 'ok' } | null>(null);
   const [persisted, setPersisted] = useState<boolean | null>(null);
   const workoutCount = Object.keys(state.workouts).length;
 
@@ -198,42 +246,47 @@ function Backup({ state, onImported }: { state: AppState; onImported: () => Prom
       setMessage(null);
       setPending({ file: file.name, state: result.state });
     } else {
-      setMessage({ kind: 'error', text: result.error });
+      setMessage({ kind: 'error', error: result.error });
     }
   };
 
   return (
     <section className="group">
-      <h2 className="group-title">Backup</h2>
+      <h2 className="group-title">{t.backup.title}</h2>
       <div className="card stack">
         <p className="backup-note">
-          Your data lives only on this phone. Export a backup now and then, and keep it in Files or iCloud Drive.
-          {persisted === false && ' Safari may clear it if the app goes unused for weeks.'}
+          {t.backup.note}
+          {persisted === false && t.backup.evictionNote}
         </p>
         <button type="button" className="button secondary" onClick={() => void exportBackup(state)}>
-          Export backup (JSON)
+          {t.backup.export}
         </button>
         <button type="button" className="button secondary" onClick={() => input.current?.click()}>
-          Import backup…
+          {t.backup.import}
         </button>
-        <input ref={input} type="file" accept="application/json,.json" hidden aria-label="Backup file" onChange={(e) => void onFile(e)} />
-        {message && (
-          <p className={message.kind === 'error' ? 'message error' : 'message ok'} role={message.kind === 'error' ? 'alert' : 'status'}>
-            {message.text}
+        <input ref={input} type="file" accept="application/json,.json" hidden aria-label={t.backup.file} onChange={(e) => void onFile(e)} />
+        {message?.kind === 'error' && (
+          <p className="message error" role="alert">
+            {backupErrorText(message.error, t)}
+          </p>
+        )}
+        {message?.kind === 'ok' && (
+          <p className="message ok" role="status">
+            {t.backup.imported}
           </p>
         )}
       </div>
 
       {pending && (
         <ConfirmSheet
-          title="Replace all data?"
-          message={`Import ${Object.keys(pending.state.workouts).length} workouts from “${pending.file}”? This replaces the ${workoutCount} workouts on this phone.`}
-          confirmLabel="Replace with backup"
+          title={t.backup.replaceTitle}
+          message={t.backup.replaceMessage(Object.keys(pending.state.workouts).length, pending.file, workoutCount)}
+          confirmLabel={t.backup.replaceConfirm}
           onClose={() => setPending(null)}
           onConfirm={() => {
             dispatch({ type: 'state/replace', state: pending.state });
             setPending(null);
-            void onImported().then(() => setMessage({ kind: 'ok', text: 'Backup imported.' }));
+            void onImported().then(() => setMessage({ kind: 'ok' }));
           }}
         />
       )}

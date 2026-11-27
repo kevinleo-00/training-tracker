@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useId } from 'react';
+import { useI18n } from '../i18n';
 import { Icon } from './Icon';
 
 /** A bottom sheet that sits above everything, including the tab bar. */
@@ -15,6 +16,7 @@ export function Sheet({
   tall?: boolean;
 }) {
   const titleId = useId();
+  const { t } = useI18n();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     addEventListener('keydown', onKey);
@@ -26,7 +28,7 @@ export function Sheet({
       <div className={tall ? 'sheet tall' : 'sheet'} role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={(e) => e.stopPropagation()}>
         <div className="sheet-header">
           <h2 id={titleId}>{title}</h2>
-          <button type="button" className="icon-button" aria-label="Close" onClick={onClose}>
+          <button type="button" className="icon-button" aria-label={t.common.close} onClick={onClose}>
             <Icon name="close" />
           </button>
         </div>
@@ -49,6 +51,7 @@ export function ConfirmSheet({
   onConfirm: () => void;
   onClose: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <Sheet title={title} onClose={onClose}>
       <p className="sheet-message">{message}</p>
@@ -57,7 +60,7 @@ export function ConfirmSheet({
           {confirmLabel}
         </button>
         <button type="button" className="button secondary" onClick={onClose}>
-          Cancel
+          {t.common.cancel}
         </button>
       </div>
     </Sheet>

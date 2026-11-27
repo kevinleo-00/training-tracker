@@ -7,6 +7,7 @@ A personal gym log for iPhone. It runs as a web app that you add to your Home Sc
 - **Dashboard.** See max weight and estimated one-rep max per exercise over time, your heaviest set, and your best estimated set. It also shows workouts and volume for each of the last 12 weeks, workouts this week, workouts in the last 30 days, and your weekly streak.
 - **Backup.** Export all data as a JSON file and import it again.
 - **Themes.** Settings → Appearance switches between Classic, which follows light or dark mode, and Pixel, a retro RPG look.
+- **Languages.** The app follows the phone's language when it is English, Simplified Chinese, Traditional Chinese, Japanese, or Korean, and shows English otherwise. Settings → Language picks one directly.
 
 ## Run it locally
 
@@ -36,7 +37,7 @@ Before the first `npm run test:e2e` or `npm run icons`, install the browser:
 npx playwright install webkit
 ```
 
-The screenshot test writes every screen, in light and dark mode and in the pixel theme, to `test-results/screens/`.
+The screenshot test writes every screen to `test-results/screens/`: English in light mode, dark mode, and the pixel theme, and each other language in light mode and the pixel theme under a folder named by its locale (for example `test-results/screens/ja/`).
 
 ## Deploy it as a static site
 
@@ -105,4 +106,5 @@ Export a backup regularly. Open **Settings > Backup > Export backup (JSON)** and
 - `src/domain/` holds pure TypeScript with no browser or React code. It has the data types, the reducer that makes every state change, the stats, the rest timer state machine, and backup validation. Unit tests live next to each file.
 - `src/store/` loads and saves the app state in IndexedDB and keeps the rest timer in `localStorage`.
 - `src/ui/` holds the React screens and components. Charts are hand-written SVG.
+- `src/ui/i18n/` holds one message catalog per language. `en.ts` defines the shape, and TypeScript rejects any other catalog with a missing or extra key.
 - `e2e/` holds the Playwright tests and the fixture that the screenshot test imports.

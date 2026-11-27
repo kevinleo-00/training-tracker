@@ -39,7 +39,7 @@ describe('store', () => {
     const { persistence, quarantined } = memory({ version: 99 });
     const store = createStore(persistence);
     const { notice } = await store.load();
-    expect(notice).toMatch(/\S/);
+    expect(notice).toEqual({ kind: 'unreadable', detail: expect.stringContaining('version') });
     expect(quarantined).toEqual([{ version: 99 }]);
     expect(store.getState()).toEqual(emptyState());
   });

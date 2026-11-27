@@ -6,19 +6,21 @@ import { ExercisePicker } from '../components/ExercisePicker';
 import { Icon } from '../components/Icon';
 import { NumberField } from '../components/NumberField';
 import { ActionSheet, ConfirmSheet } from '../components/Sheet';
+import { useI18n } from '../i18n';
 import { newId } from '../ids';
 import { href, navigate } from '../route';
 import { useStartRest } from '../useStartRest';
 
 export function WorkoutScreen({ id }: { id: WorkoutId }) {
   const workout = useAppState().workouts[id];
+  const { t } = useI18n();
   if (!workout) {
     return (
       <div className="empty">
-        <p className="empty-title">Workout not found</p>
-        <p>It may have been deleted.</p>
+        <p className="empty-title">{t.workout.notFoundTitle}</p>
+        <p>{t.workout.notFoundBody}</p>
         <a className="button" href={href({ name: 'workouts' })}>
-          Back to workouts
+          {t.workout.backToWorkouts}
         </a>
       </div>
     );
@@ -30,6 +32,7 @@ type Overlay = 'picker' | 'menu' | 'confirm-delete' | null;
 
 function WorkoutEditor({ workout }: { workout: Workout }) {
   const dispatch = useDispatch();
+  const { t } = useI18n();
   const [overlay, setOverlay] = useState<Overlay>(null);
   const close = () => setOverlay(null);
 
@@ -38,9 +41,9 @@ function WorkoutEditor({ workout }: { workout: Workout }) {
       <header className="screen-header workout-header">
         <a className="back-link" href={href({ name: 'workouts' })}>
           <Icon name="back" />
-          Workouts
+          {t.tabs.workouts}
         </a>
-        <button type="button" className="icon-button" aria-label="Workout actions" onClick={() => setOverlay('menu')}>
+        <button type="button" className="icon-button" aria-label={t.workout.actions} onClick={() => setOverlay('menu')}>
           <Icon name="more" />
         </button>
       </header>
@@ -48,8 +51,8 @@ function WorkoutEditor({ workout }: { workout: Workout }) {
       <div className="workout-title">
         <input
           className="title-field"
-          aria-label="Workout name"
-          placeholder="Workout name"
+          aria-label={t.workout.name}
+          placeholder={t.workout.name}
           autoCapitalize="words"
           enterKeyHint="done"
           value={workout.name}
@@ -59,7 +62,7 @@ function WorkoutEditor({ workout }: { workout: Workout }) {
         <input
           className="date-field"
           type="date"
-          aria-label="Workout date"
+          aria-label={t.workout.date}
           required
           value={workout.date}
           onChange={(e) => {
@@ -71,7 +74,7 @@ function WorkoutEditor({ workout }: { workout: Workout }) {
 
       {workout.entries.length === 0 ? (
         <div className="empty compact">
-          <p>Add your first exercise, then log each set as you go.</p>
+          <p>{t.workout.emptyBody}</p>
         </div>
       ) : (
         <ol className="entry-list">
@@ -83,7 +86,7 @@ function WorkoutEditor({ workout }: { workout: Workout }) {
 
       <button type="button" className="button add-exercise" onClick={() => setOverlay('picker')}>
         <Icon name="plus" size={20} />
-        Add exercise
+        {t.workout.addExercise}
       </button>
 
       {overlay === 'picker' && (
@@ -97,11 +100,11 @@ function WorkoutEditor({ workout }: { workout: Workout }) {
       )}
       {overlay === 'menu' && (
         <ActionSheet
-          title={workout.name || 'Workout'}
+          title={workout.name || t.common.untitledWorkout}
           onClose={close}
           actions={[
             {
-              label: 'Copy as today’s plan',
+              label: t.workout.copyAsTodaysPlan,
               icon: 'copy',
               disabled: workout.entries.length === 0,
               onSelect: () => {
@@ -110,15 +113,15 @@ function WorkoutEditor({ workout }: { workout: Workout }) {
                 navigate({ name: 'workout', id });
               },
             },
-            { label: 'Delete workout', icon: 'trash', danger: true, onSelect: () => setOverlay('confirm-delete') },
+            { label: t.workout.delete, icon: 'trash', danger: true, onSelect: () => setOverlay('confirm-delete') },
           ]}
         />
       )}
       {overlay === 'confirm-delete' && (
         <ConfirmSheet
-          title="Delete workout?"
-          message={`“${workout.name || 'Untitled workout'}” and all its sets will be removed. This cannot be undone.`}
-          confirmLabel="Delete workout"
+          title={t.workout.deleteTitle}
+          message={t.workout.deleteMessage(workout.name || t.common.untitledWorkout)}
+          confirmLabel={t.workout.delete}
           onClose={close}
           onConfirm={() => {
             navigate({ name: 'workouts' });
@@ -133,8 +136,9 @@ function WorkoutEditor({ workout }: { workout: Workout }) {
 function EntryCard({ workout, entry, index }: { workout: Workout; entry: WorkoutEntry; index: number }) {
   const { exercises, settings } = useAppState();
   const dispatch = useDispatch();
+  const { t } = useI18n();
   const [menu, setMenu] = useState(false);
-  const name = exercises[entry.exerciseId]?.name ?? 'Unknown exercise';
+  const name = exercises[entry.exerciseId]?.name ?? t.common.unknownExercise;
   const ref = { workoutId: workout.id, entryId: entry.id };
   const move = (toIndex: number) => dispatch({ type: 'entry/move', ...ref, toIndex });
 
@@ -142,21 +146,21 @@ function EntryCard({ workout, entry, index }: { workout: Workout; entry: Workout
     <li className="card entry-card">
       <div className="entry-header">
         <h2>{name}</h2>
-        <button type="button" className="icon-button" aria-label={`${name} actions`} onClick={() => setMenu(true)}>
+        <button type="button" className="icon-button" aria-label={t.workout.exerciseActions(name)} onClick={() => setMenu(true)}>
           <Icon name="more" />
         </button>
       </div>
       {entry.sets.length > 0 && (
-        <div className="set-grid" role="table" aria-label={`${name} sets`}>
+        <div className="set-grid" role="table" aria-label={t.workout.sets(name)}>
           <div className="set-row set-head" role="row">
-            <span role="columnheader">Set</span>
+            <span role="columnheader">{t.workout.setColumn}</span>
             <span role="columnheader">{settings.unit}</span>
-            <span role="columnheader">Reps</span>
+            <span role="columnheader">{t.workout.repsColumn}</span>
             <span role="columnheader">
-              <span className="sr-only">Done</span>
+              <span className="sr-only">{t.workout.doneColumn}</span>
             </span>
             <span role="columnheader">
-              <span className="sr-only">Remove</span>
+              <span className="sr-only">{t.workout.removeColumn}</span>
             </span>
           </div>
           {entry.sets.map((set, i) => (
@@ -166,16 +170,16 @@ function EntryCard({ workout, entry, index }: { workout: Workout; entry: Workout
       )}
       <button type="button" className="add-set" onClick={() => dispatch({ type: 'set/add', ...ref, setId: newId<SetId>() })}>
         <Icon name="plus" size={18} />
-        Add set
+        {t.workout.addSet}
       </button>
       {menu && (
         <ActionSheet
           title={name}
           onClose={() => setMenu(false)}
           actions={[
-            { label: 'Move up', icon: 'up', disabled: index === 0, onSelect: () => move(index - 1) },
-            { label: 'Move down', icon: 'down', disabled: index === workout.entries.length - 1, onSelect: () => move(index + 1) },
-            { label: 'Remove exercise', icon: 'trash', danger: true, onSelect: () => dispatch({ type: 'entry/remove', ...ref }) },
+            { label: t.workout.moveUp, icon: 'up', disabled: index === 0, onSelect: () => move(index - 1) },
+            { label: t.workout.moveDown, icon: 'down', disabled: index === workout.entries.length - 1, onSelect: () => move(index + 1) },
+            { label: t.workout.removeExercise, icon: 'trash', danger: true, onSelect: () => dispatch({ type: 'entry/remove', ...ref }) },
           ]}
         />
       )}
@@ -197,8 +201,8 @@ function SetRow({
   const { settings } = useAppState();
   const dispatch = useDispatch();
   const startRest = useStartRest();
+  const { t } = useI18n();
   const ref = { ...entryRef, setId: set.id };
-  const label = `${exerciseName} set ${number}`;
 
   return (
     <div className={set.done ? 'set-row done' : 'set-row'} role="row">
@@ -206,16 +210,16 @@ function SetRow({
         {number}
       </span>
       <span role="cell">
-        <NumberField label={`${label} weight`} value={set.weight} onCommit={(weight) => dispatch({ type: 'set/update', ...ref, weight })} />
+        <NumberField label={t.workout.setWeight(exerciseName, number)} value={set.weight} onCommit={(weight) => dispatch({ type: 'set/update', ...ref, weight })} />
       </span>
       <span role="cell">
-        <NumberField label={`${label} reps`} integer value={set.reps} onCommit={(reps) => dispatch({ type: 'set/update', ...ref, reps })} />
+        <NumberField label={t.workout.setReps(exerciseName, number)} integer value={set.reps} onCommit={(reps) => dispatch({ type: 'set/update', ...ref, reps })} />
       </span>
       <span role="cell">
         <button
           type="button"
           className="check"
-          aria-label={`${label} done`}
+          aria-label={t.workout.setDone(exerciseName, number)}
           aria-pressed={set.done}
           onClick={() => {
             dispatch({ type: 'set/toggleDone', ...ref });
@@ -226,7 +230,7 @@ function SetRow({
         </button>
       </span>
       <span role="cell">
-        <button type="button" className="icon-button remove-set" aria-label={`Remove ${label}`} onClick={() => dispatch({ type: 'set/remove', ...ref })}>
+        <button type="button" className="icon-button remove-set" aria-label={t.workout.removeSet(exerciseName, number)} onClick={() => dispatch({ type: 'set/remove', ...ref })}>
           <Icon name="close" size={18} />
         </button>
       </span>

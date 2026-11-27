@@ -5,6 +5,21 @@
  */
 @import '@fontsource/dotgothic16/latin-400.css';
 
+/*
+ * DotGothic16's kana and kanji, under their own family name so only text
+ * tagged Japanese uses them and only Japanese readers download the file.
+ * Chinese and Korean are not given these glyphs: the font lacks many Hanzi
+ * and all Hangul, so a word would mix pixel and smooth characters. Their CJK
+ * text falls back to the system font while Latin letters and digits stay pixel.
+ */
+@font-face {
+  font-family: 'DotGothic16 Japanese';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('@fontsource/dotgothic16/files/dotgothic16-japanese-400-normal.woff2') format('woff2');
+}
+
 :root[data-theme='pixel'],
 [data-theme='pixel'] {
   color-scheme: dark;
@@ -33,14 +48,36 @@
   --frame-thin: 0 -2px 0 var(--frame), 0 2px 0 var(--frame), -2px 0 0 var(--frame), 2px 0 0 var(--frame);
   --rounding: 0;
   --text-size: 16px;
-  --font: 'DotGothic16', ui-monospace, Menlo, monospace;
+  --font-pixel: 'DotGothic16', ui-monospace, Menlo, monospace;
+  --font-pixel-ja: 'DotGothic16', 'DotGothic16 Japanese', ui-monospace, Menlo, monospace;
+  --font: var(--font-pixel);
   font-synthesis: none;
+}
+
+:root[data-theme='pixel']:lang(ja),
+[data-theme='pixel']:lang(ja) {
+  --font: var(--font-pixel-ja);
+}
+
+/* An element tagged with its own language, like a language's name in Settings, takes that language's stack. */
+:root[data-theme='pixel'] [lang] {
+  font-family: var(--font-pixel);
+}
+
+:root[data-theme='pixel'] [lang]:lang(ja) {
+  font-family: var(--font-pixel-ja);
+}
+
+/* DotGothic16's half-em space reads as a gap between Hangul words set in the system font. */
+:root[data-theme='pixel']:lang(ko) {
+  word-spacing: -0.2em;
 }
 
 /* ---------- Pixel primitives ---------- */
 
 /* The blinking ▶ cursor that marks the selected item. */
-:root[data-theme='pixel'] :is(.tab.active > span, .chip.current, .theme-option[aria-checked='true'] .theme-name)::before {
+:root[data-theme='pixel']
+  :is(.tab.active > span, .chip.current, .theme-option[aria-checked='true'] .theme-name, .choice[aria-checked='true'] .choice-label)::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -402,7 +439,7 @@
   transition: none;
 }
 
-:root[data-theme='pixel'] :is(.toggle-row, .plain-list li + li) {
+:root[data-theme='pixel'] :is(.toggle-row, .plain-list li + li, .choice + .choice) {
   border-color: var(--border);
   border-width: 2px;
 }
@@ -417,5 +454,23 @@
 }
 
 :root[data-theme='pixel'] .theme-option[aria-checked='true'] .theme-name::before {
+  left: 0;
+}
+
+/* Menu rows leave room for the cursor, which replaces the check mark. */
+:root[data-theme='pixel'] .choice > svg {
+  display: none;
+}
+
+:root[data-theme='pixel'] .choice-label {
+  position: relative;
+  padding-left: 14px;
+}
+
+:root[data-theme='pixel'] .choice[aria-checked='true'] .choice-label {
+  color: var(--accent);
+}
+
+:root[data-theme='pixel'] .choice[aria-checked='true'] .choice-label::before {
   left: 0;
 }

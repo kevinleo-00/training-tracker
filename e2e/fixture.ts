@@ -2,7 +2,16 @@
 import { serializeAppState } from '../src/domain/backup';
 import { addDays, toLocalDate, weekStart } from '../src/domain/dates';
 import { type Action, reduce } from '../src/domain/reducer';
-import { type AppState, emptyState, type EntryId, type ExerciseId, type SetId, type ThemeId, type WorkoutId } from '../src/domain/types';
+import {
+  type AppState,
+  emptyState,
+  type EntryId,
+  type ExerciseId,
+  type Language,
+  type SetId,
+  type ThemeId,
+  type WorkoutId,
+} from '../src/domain/types';
 
 const plans: { name: string; weekday: number; lifts: [string, number, number, number][] }[] = [
   // [exercise, start weight, weekly increment, reps]
@@ -11,10 +20,10 @@ const plans: { name: string; weekday: number; lifts: [string, number, number, nu
   { name: 'Leg day', weekday: 4, lifts: [['Squat', 100, 5, 5], ['Romanian deadlift', 80, 2.5, 8]] },
 ];
 
-export function fixtureState(weeks = 8, theme: ThemeId = 'classic'): AppState {
+export function fixtureState(weeks = 8, theme: ThemeId = 'classic', language: Language = 'system'): AppState {
   const today = toLocalDate(new Date());
   const thisWeek = weekStart(today);
-  const actions: Action[] = [{ type: 'settings/update', patch: { theme } }];
+  const actions: Action[] = [{ type: 'settings/update', patch: { theme, language } }];
   const ids = new Map<string, ExerciseId>();
   for (const plan of plans) {
     for (const [name] of plan.lifts) {
@@ -44,4 +53,4 @@ export function fixtureState(weeks = 8, theme: ThemeId = 'classic'): AppState {
   return actions.reduce(reduce, emptyState());
 }
 
-export const fixtureJson = (theme?: ThemeId) => serializeAppState(fixtureState(8, theme));
+export const fixtureJson = (theme?: ThemeId, language?: Language) => serializeAppState(fixtureState(8, theme, language));

@@ -1,21 +1,23 @@
+import { useI18n } from '../i18n';
 import { href, type Route } from '../route';
 import { Icon, type IconName } from './Icon';
 
-const tabs: { label: string; icon: IconName; route: Route; matches: Route['name'][] }[] = [
-  { label: 'Workouts', icon: 'list', route: { name: 'workouts' }, matches: ['workouts', 'workout'] },
-  { label: 'Dashboard', icon: 'chart', route: { name: 'dashboard' }, matches: ['dashboard'] },
-  { label: 'Settings', icon: 'gear', route: { name: 'settings' }, matches: ['settings'] },
+const tabs: { name: 'workouts' | 'dashboard' | 'settings'; icon: IconName; matches: Route['name'][] }[] = [
+  { name: 'workouts', icon: 'list', matches: ['workouts', 'workout'] },
+  { name: 'dashboard', icon: 'chart', matches: ['dashboard'] },
+  { name: 'settings', icon: 'gear', matches: ['settings'] },
 ];
 
 export function TabBar({ route }: { route: Route }) {
+  const { t } = useI18n();
   return (
-    <nav className="tab-bar" aria-label="Main">
-      {tabs.map((t) => {
-        const active = t.matches.includes(route.name);
+    <nav className="tab-bar" aria-label={t.tabs.label}>
+      {tabs.map((tab) => {
+        const active = tab.matches.includes(route.name);
         return (
-          <a key={t.label} href={href(t.route)} className={active ? 'tab active' : 'tab'} aria-current={active ? 'page' : undefined}>
-            <Icon name={t.icon} size={24} />
-            <span>{t.label}</span>
+          <a key={tab.name} href={href({ name: tab.name })} className={active ? 'tab active' : 'tab'} aria-current={active ? 'page' : undefined}>
+            <Icon name={tab.icon} size={24} />
+            <span>{t.tabs[tab.name]}</span>
           </a>
         );
       })}
