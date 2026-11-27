@@ -1,10 +1,10 @@
-// Renders scripts/icon.svg to the PNG icons the PWA manifest and iOS need.
+// Renders the pixel art in scripts/icon.ts to the icons the PWA manifest, iOS, and browser tabs need.
 // Usage: npm run icons (needs `npx playwright install webkit` once).
-import { readFile, writeFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import { webkit } from '@playwright/test';
+import { iconSvg } from './icon.ts';
 
 const root = new URL('..', import.meta.url);
-const svg = await readFile(new URL('scripts/icon.svg', root), 'utf8');
 
 // [file, size, art scale]. Maskable icons shrink the art into the 80% safe zone; the background still bleeds to the edge.
 const outputs = [
@@ -16,17 +16,14 @@ const outputs = [
 
 const browser = await webkit.launch();
 const page = await browser.newPage();
-for (const [file, size, scale] of outputs) {
+for (const [file, size, artScale] of outputs) {
   await page.setViewportSize({ width: size, height: size });
-  const art = svg
-    .replace('transform="rotate(', `transform="translate(256 256) scale(${scale}) translate(-256 -256) rotate(`)
-    .replace('<svg ', `<svg width="${size}" height="${size}" style="display:block" `);
-  await page.setContent(`<body style="margin:0">${art}</body>`);
+  await page.setContent(`<body style="margin:0">${iconSvg({ size, artScale }).replace('<svg ', '<svg style="display:block" ')}</body>`);
   await writeFile(new URL(file, root), await page.screenshot({ type: 'png' }));
   console.log(`wrote ${file}`);
 }
 await browser.close();
 
-// The favicon is the same art as SVG with rounded corners for browser tabs.
-await writeFile(new URL('public/favicon.svg', root), svg.replace('<rect width="512" height="512"', '<rect width="512" height="512" rx="112"'));
+// Browser tabs get the SVG itself, with notched corners like the Pixel theme's windows.
+await writeFile(new URL('public/favicon.svg', root), iconSvg({ size: 512, notched: true }));
 console.log('wrote public/favicon.svg');

@@ -28,7 +28,7 @@ Open the URL that Vite prints.
 | `npm run test:e2e` | Builds, serves, and runs the Playwright tests in WebKit at iPhone 15 size. |
 | `npm run typecheck` | Runs `tsc -b`. |
 | `npm run lint` | Runs ESLint. |
-| `npm run icons` | Renders `scripts/icon.svg` to the PNG icons in `public/`. |
+| `npm run icons` | Renders the pixel art in `scripts/icon.ts` to the icons in `public/`. |
 
 Before the first `npm run test:e2e` or `npm run icons`, install the browser:
 
