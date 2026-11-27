@@ -40,7 +40,8 @@
 /* ---------- Pixel primitives ---------- */
 
 /* The blinking ▶ cursor that marks the selected item. */
-:root[data-theme='pixel'] :is(.tab.active > span, .chip.current, .theme-option[aria-checked='true'] .theme-name)::before {
+:root[data-theme='pixel']
+  :is(.tab.active > span, .chip.current, .theme-option[aria-checked='true'] .theme-name, .choice[aria-checked='true'] .choice-label)::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -402,7 +403,7 @@
   transition: none;
 }
 
-:root[data-theme='pixel'] :is(.toggle-row, .plain-list li + li) {
+:root[data-theme='pixel'] :is(.toggle-row, .plain-list li + li, .choice + .choice) {
   border-color: var(--border);
   border-width: 2px;
 }
@@ -417,5 +418,23 @@
 }
 
 :root[data-theme='pixel'] .theme-option[aria-checked='true'] .theme-name::before {
+  left: 0;
+}
+
+/* Menu rows leave room for the cursor, which replaces the check mark. */
+:root[data-theme='pixel'] .choice > svg {
+  display: none;
+}
+
+:root[data-theme='pixel'] .choice-label {
+  position: relative;
+  padding-left: 14px;
+}
+
+:root[data-theme='pixel'] .choice[aria-checked='true'] .choice-label {
+  color: var(--accent);
+}
+
+:root[data-theme='pixel'] .choice[aria-checked='true'] .choice-label::before {
   left: 0;
 }

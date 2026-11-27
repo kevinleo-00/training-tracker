@@ -1,13 +1,13 @@
 import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 import { type BackupError, parseAppState } from '../../domain/backup';
-import { type AppState, type Exercise, THEME_IDS } from '../../domain/types';
+import { type AppState, type Exercise, type Language, LANGUAGES, THEME_IDS } from '../../domain/types';
 import { useAppState, useDispatch } from '../../store/react';
 import { exportBackup } from '../backupFile';
 import { Icon } from '../components/Icon';
 import { NumberField } from '../components/NumberField';
 import { ConfirmSheet, Sheet } from '../components/Sheet';
 import { formatSeconds } from '../format';
-import { type Messages, useI18n } from '../i18n';
+import { deviceLanguages, LANGUAGE_NAMES, type Messages, resolveLocale, useI18n } from '../i18n';
 
 export function SettingsScreen({ onImported }: { onImported: () => Promise<void> }) {
   const state = useAppState();
@@ -47,6 +47,8 @@ export function SettingsScreen({ onImported }: { onImported: () => Promise<void>
           ))}
         </div>
       </section>
+
+      <LanguagePicker language={settings.language} />
 
       <section className="group">
         <h2 className="group-title">{t.settings.units}</h2>
@@ -108,6 +110,45 @@ export function SettingsScreen({ onImported }: { onImported: () => Promise<void>
 
       {renaming && <RenameSheet exercise={renaming} onClose={() => setRenaming(null)} />}
     </>
+  );
+}
+
+function LanguagePicker({ language }: { language: Language }) {
+  const dispatch = useDispatch();
+  const { t } = useI18n();
+  const device = resolveLocale('system', deviceLanguages());
+
+  return (
+    <section className="group">
+      <h2 className="group-title">{t.settings.language}</h2>
+      <div className="card choice-list" role="radiogroup" aria-label={t.settings.language}>
+        {LANGUAGES.map((value) => (
+          <button
+            key={value}
+            type="button"
+            role="radio"
+            className="choice"
+            aria-checked={language === value}
+            onClick={() => dispatch({ type: 'settings/update', patch: { language: value } })}
+          >
+            {/* Each language is named in its own script, tagged so it gets that language's glyphs. */}
+            {value === 'system' ? (
+              <>
+                <span className="choice-label">{t.settings.automatic}</span>
+                <span className="choice-detail" lang={device}>
+                  {LANGUAGE_NAMES[device]}
+                </span>
+              </>
+            ) : (
+              <span className="choice-label" lang={value}>
+                {LANGUAGE_NAMES[value]}
+              </span>
+            )}
+            <Icon name="check" size={20} />
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }
 
