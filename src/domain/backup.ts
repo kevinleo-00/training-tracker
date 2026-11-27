@@ -16,7 +16,10 @@ import {
   type WorkSet,
 } from './types';
 
-export type ParseResult = { ok: true; state: AppState } | { ok: false; error: string };
+/** A rejected backup. `detail` names the offending field for developers, so it is not translated. */
+export type InvalidBackup = { kind: 'invalid'; detail: string };
+export type BackupError = { kind: 'not-json' } | InvalidBackup;
+export type ParseResult = { ok: true; state: AppState } | { ok: false; error: BackupError };
 
 class Invalid extends Error {}
 
@@ -29,17 +32,17 @@ export function parseAppState(text: string): ParseResult {
   try {
     raw = JSON.parse(text);
   } catch {
-    return { ok: false, error: 'This file is not valid JSON.' };
+    return { ok: false, error: { kind: 'not-json' } };
   }
   return validateAppState(raw);
 }
 
 /** Checks untrusted data (a backup file, a stored document) and rebuilds it as an AppState. */
-export function validateAppState(raw: unknown): ParseResult {
+export function validateAppState(raw: unknown): { ok: true; state: AppState } | { ok: false; error: InvalidBackup } {
   try {
     return { ok: true, state: appState(raw) };
   } catch (e) {
-    if (e instanceof Invalid) return { ok: false, error: `Not a valid backup: ${e.message}` };
+    if (e instanceof Invalid) return { ok: false, error: { kind: 'invalid', detail: e.message } };
     throw e;
   }
 }

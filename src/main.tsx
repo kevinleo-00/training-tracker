@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { registerSW } from 'virtual:pwa-register';
 import { idbPersistence, requestPersistentStorage } from './store/idbPersistence';
 import { StoreContext } from './store/react';
-import { createStore } from './store/store';
+import { createStore, type Notice } from './store/store';
 import { App } from './ui/App';
 import { applyTheme } from './ui/themes';
 import './ui/styles.css';
@@ -18,9 +18,7 @@ const flush = () => void store.flush();
 addEventListener('pagehide', flush);
 document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && flush());
 
-const { notice } = await store.load().catch(() => ({
-  notice: 'This browser blocked storage, so workouts will not be saved. Private Browsing can cause this.',
-}));
+const { notice } = await store.load().catch(() => ({ notice: { kind: 'storage-blocked' } satisfies Notice }));
 void requestPersistentStorage();
 
 const syncTheme = () => applyTheme(store.getState().settings.theme);

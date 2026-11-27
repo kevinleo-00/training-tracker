@@ -198,7 +198,8 @@ function Backup({ state, onImported }: { state: AppState; onImported: () => Prom
       setMessage(null);
       setPending({ file: file.name, state: result.state });
     } else {
-      setMessage({ kind: 'error', text: result.error });
+      const { error } = result;
+      setMessage({ kind: 'error', text: error.kind === 'not-json' ? 'This file is not valid JSON.' : `Not a valid backup: ${error.detail}` });
     }
   };
 

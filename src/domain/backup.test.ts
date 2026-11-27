@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseAppState, serializeAppState } from './backup';
+import { parseAppState, type ParseResult, serializeAppState } from './backup';
 import { type Action, reduce } from './reducer';
 import { day, eid, sid, wid, xid } from './testing';
 import { type AppState, emptyState } from './types';
@@ -23,6 +23,9 @@ const mutate = (fn: (raw: any) => void) => {
   return JSON.stringify(raw);
 };
 
+/** The developer-facing detail of a rejected backup, or null when it was not rejected as invalid. */
+const detail = (result: ParseResult) => (!result.ok && result.error.kind === 'invalid' ? result.error.detail : null);
+
 describe('backup', () => {
   it('round-trips a state through JSON', () => {
     const result = parseAppState(serializeAppState(sample()));
@@ -33,8 +36,11 @@ describe('backup', () => {
     expect(parseAppState(serializeAppState(emptyState()))).toEqual({ ok: true, state: emptyState() });
   });
 
+  it('rejects text that is not JSON', () => {
+    expect(parseAppState('{"version": 1,')).toEqual({ ok: false, error: { kind: 'not-json' } });
+  });
+
   it.each([
-    ['not JSON', '{"version": 1,'],
     ['not an object', '[1,2,3]'],
     ['an unknown version', mutate((r) => (r.version = 2))],
     ['a workout with a bad date', mutate((r) => (r.workouts.w1.date = '2026-13-01'))],
@@ -49,10 +55,8 @@ describe('backup', () => {
     ['a missing exercises map', mutate((r) => delete r.exercises)],
     ['an unknown theme', mutate((r) => (r.settings.theme = 'neon'))],
     ['an unknown language', mutate((r) => (r.settings.language = 'fr'))],
-  ])('rejects %s with a message', (_label, text) => {
-    const result = parseAppState(text);
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.error).toMatch(/\S/);
+  ])('rejects %s as invalid with a detail', (_label, text) => {
+    expect(parseAppState(text)).toEqual({ ok: false, error: { kind: 'invalid', detail: expect.stringMatching(/\S/) } });
   });
 
   it('fills the classic theme into data saved before themes existed', () => {
@@ -67,7 +71,7 @@ describe('backup', () => {
 
   it('names the theme field when it rejects an unknown theme', () => {
     const result = parseAppState(mutate((r) => (r.settings.theme = 'neon')));
-    expect(result.ok ? null : result.error).toMatch(/settings\.theme/);
+    expect(detail(result)).toMatch(/settings\.theme/);
   });
 
   it('follows the device language for data saved before the language setting existed', () => {
@@ -82,7 +86,7 @@ describe('backup', () => {
 
   it('names the language field when it rejects an unknown language', () => {
     const result = parseAppState(mutate((r) => (r.settings.language = 'zh-CN')));
-    expect(result.ok ? null : result.error).toMatch(/settings\.language/);
+    expect(detail(result)).toMatch(/settings\.language/);
   });
 
   it('drops unknown fields instead of carrying them into state', () => {

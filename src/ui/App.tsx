@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useRestTimer } from '../store/restTimer';
+import type { Notice } from '../store/store';
 import { RestTimerBar } from './components/RestTimerBar';
 import { TabBar } from './components/TabBar';
 import { useRoute } from './route';
@@ -8,7 +9,12 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { WorkoutScreen } from './screens/WorkoutScreen';
 import { WorkoutsScreen } from './screens/WorkoutsScreen';
 
-export function App({ notice, onImported }: { notice: string | null; onImported: () => Promise<void> }) {
+const noticeText = (notice: Notice) =>
+  notice.kind === 'storage-blocked'
+    ? 'This browser blocked storage, so workouts will not be saved. Private Browsing can cause this.'
+    : `Your saved data could not be read, so the app started fresh. The old copy was kept aside. (${notice.detail})`;
+
+export function App({ notice, onImported }: { notice: Notice | null; onImported: () => Promise<void> }) {
   const route = useRoute();
   const timer = useRestTimer();
   // The bar shows the countdown everywhere, and the presets while logging a workout.
@@ -22,7 +28,7 @@ export function App({ notice, onImported }: { notice: string | null; onImported:
       <main className="screen" key={key}>
         {notice && (
           <p className="message error" role="alert">
-            {notice}
+            {noticeText(notice)}
           </p>
         )}
         {route.name === 'workouts' && <WorkoutsScreen />}
