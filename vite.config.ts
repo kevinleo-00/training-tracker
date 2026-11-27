@@ -27,11 +27,15 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,webmanifest,woff2}'],
-        // The pixel theme's Japanese glyphs are about 400 KB, so only readers who show them download
-        // the file, and the service worker keeps it for offline use from then on.
-        globIgnores: ['**/dotgothic16-japanese-*'],
+        // The pixel theme's CJK glyphs are 400-600 KB per language, so only readers who show them
+        // download their file, and the service worker keeps it for offline use from then on.
+        globIgnores: ['**/dotgothic16-japanese-*', '**/fusion-pixel-*'],
         runtimeCaching: [
-          { urlPattern: /dotgothic16-japanese-[^/]*\.woff2$/, handler: 'CacheFirst', options: { cacheName: 'japanese-pixel-font' } },
+          {
+            urlPattern: /(dotgothic16-japanese|fusion-pixel)-[^/]*\.woff2$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'pixel-cjk-fonts' },
+          },
         ],
       },
     }),
