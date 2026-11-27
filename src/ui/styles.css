@@ -70,6 +70,11 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Korean wraps between words, not inside them. */
+:lang(ko) {
+  word-break: keep-all;
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -523,6 +528,13 @@ section.card {
   text-align: center;
 }
 
+/* The set column is narrow, so a longer heading (セット) spills evenly past both sides instead of wrapping. */
+.set-head > :first-child {
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+}
+
 .set-number {
   text-align: center;
   font-weight: 600;
@@ -947,6 +959,8 @@ section.card {
   display: block;
   width: 100%;
   height: auto;
+  /* The last axis label is centered under the last bar; a long date (11月23日) may reach into the card's padding. */
+  overflow: visible;
   touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
