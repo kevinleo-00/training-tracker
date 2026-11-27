@@ -1,4 +1,4 @@
-import type { LocalDate } from './types';
+import type { LocalDate, Locale } from './types';
 
 const DAY_MS = 86_400_000;
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -42,6 +42,6 @@ export function weekStart(date: LocalDate): LocalDate {
   return addDays(date, -((weekday + 6) % 7));
 }
 
-export function formatDate(date: LocalDate, options: Intl.DateTimeFormatOptions): string {
-  return new Date(toUtcMs(date)).toLocaleDateString(undefined, { ...options, timeZone: 'UTC' });
+export function formatDate(date: LocalDate, locale: Locale, options: Intl.DateTimeFormatOptions): string {
+  return new Date(toUtcMs(date)).toLocaleDateString(locale, { ...options, timeZone: 'UTC' });
 }

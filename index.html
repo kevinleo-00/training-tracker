@@ -15,9 +15,10 @@
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
     <title>Training</title>
     <script>
-      // Applies the last theme before first paint. The app re-applies it from IndexedDB, which stays the source of truth.
+      // Applies the last theme and language before first paint. The app re-applies both from IndexedDB, which stays the source of truth.
       try {
         document.documentElement.dataset.theme = localStorage.getItem('theme') || 'classic';
+        document.documentElement.lang = localStorage.getItem('lang') || 'en';
       } catch {}
     </script>
   </head>

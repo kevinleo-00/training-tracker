@@ -5,6 +5,7 @@ import { useAppState, useDispatch } from '../../store/react';
 import { Icon } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
 import { dayLabel } from '../format';
+import { useI18n } from '../i18n';
 import { newId } from '../ids';
 import { href, navigate } from '../route';
 import { sortedWorkouts, workoutSummary } from '../workouts';
@@ -12,25 +13,27 @@ import { sortedWorkouts, workoutSummary } from '../workouts';
 export function WorkoutsScreen() {
   const state = useAppState();
   const [creating, setCreating] = useState(false);
+  const i18n = useI18n();
+  const { t } = i18n;
   const workouts = sortedWorkouts(state);
   const today = getToday();
 
   return (
     <>
       <header className="screen-header">
-        <h1>Workouts</h1>
+        <h1>{t.tabs.workouts}</h1>
         <button type="button" className="button small" onClick={() => setCreating(true)}>
           <Icon name="plus" size={18} />
-          New
+          {t.workouts.new}
         </button>
       </header>
 
       {workouts.length === 0 ? (
         <div className="empty">
-          <p className="empty-title">No workouts yet</p>
-          <p>Tap New to log today’s training. Next time, you can copy it as your plan.</p>
+          <p className="empty-title">{t.workouts.emptyTitle}</p>
+          <p>{t.workouts.emptyBody}</p>
           <button type="button" className="button" onClick={() => setCreating(true)}>
-            Start a workout
+            {t.workouts.start}
           </button>
         </div>
       ) : (
@@ -38,9 +41,9 @@ export function WorkoutsScreen() {
           {workouts.map((w) => (
             <li key={w.id}>
               <a className="card workout-card" href={href({ name: 'workout', id: w.id })}>
-                <span className="workout-date">{dayLabel(w.date, today)}</span>
-                <span className="workout-name">{w.name || 'Untitled workout'}</span>
-                <span className="workout-meta">{workoutSummary(w)}</span>
+                <span className="workout-date">{dayLabel(w.date, today, i18n)}</span>
+                <span className="workout-name">{w.name || t.common.untitledWorkout}</span>
+                <span className="workout-meta">{workoutSummary(w, t)}</span>
               </a>
             </li>
           ))}
@@ -55,6 +58,8 @@ export function WorkoutsScreen() {
 function NewWorkoutSheet({ onClose }: { onClose: () => void }) {
   const state = useAppState();
   const dispatch = useDispatch();
+  const i18n = useI18n();
+  const { t } = i18n;
   const [name, setName] = useState('');
   const [date, setDate] = useState<LocalDate>(getToday);
   const previous = sortedWorkouts(state).filter((w) => w.entries.length > 0);
@@ -66,21 +71,21 @@ function NewWorkoutSheet({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <Sheet title="New workout" onClose={onClose}>
+    <Sheet title={t.workouts.newTitle} onClose={onClose}>
       <form
         className="stack"
         onSubmit={(e) => {
           e.preventDefault();
           const id = newId<WorkoutId>();
-          dispatch({ type: 'workout/create', id, date, name: name.trim() || 'Workout' });
+          dispatch({ type: 'workout/create', id, date, name: name.trim() || t.common.defaultWorkoutName });
           open(id);
         }}
       >
         <label className="field">
-          <span>Name</span>
+          <span>{t.workouts.name}</span>
           <input
             className="text-field"
-            placeholder="Push day"
+            placeholder={t.workouts.namePlaceholder}
             autoCapitalize="words"
             enterKeyHint="go"
             value={name}
@@ -88,7 +93,7 @@ function NewWorkoutSheet({ onClose }: { onClose: () => void }) {
           />
         </label>
         <label className="field">
-          <span>Date</span>
+          <span>{t.workouts.date}</span>
           <input
             className="text-field"
             type="date"
@@ -98,13 +103,13 @@ function NewWorkoutSheet({ onClose }: { onClose: () => void }) {
           />
         </label>
         <button type="submit" className="button">
-          Start blank workout
+          {t.workouts.startBlank}
         </button>
       </form>
 
       {previous.length > 0 && (
         <section className="sheet-section">
-          <h3>Or copy a previous workout as the plan</h3>
+          <h3>{t.workouts.copyHeading}</h3>
           <ul className="pick-list">
             {previous.slice(0, 30).map((w) => (
               <li key={w.id}>
@@ -119,9 +124,9 @@ function NewWorkoutSheet({ onClose }: { onClose: () => void }) {
                 >
                   <Icon name="copy" size={20} />
                   <span>
-                    <span className="pick-title">{w.name || 'Untitled workout'}</span>
+                    <span className="pick-title">{w.name || t.common.untitledWorkout}</span>
                     <span className="pick-sub">
-                      {dayLabel(w.date, today)} · {workoutSummary(w)}
+                      {dayLabel(w.date, today, i18n)} · {workoutSummary(w, t)}
                     </span>
                   </span>
                 </button>

@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
-import type { AppState, ExerciseId, LocalDate } from '../../domain/types';
+import type { AppState, ExerciseId, LocalDate, Locale } from '../../domain/types';
 import { useAppState, useDispatch } from '../../store/react';
+import { useI18n } from '../i18n';
 import { newId } from '../ids';
 import { Icon } from './Icon';
 import { Sheet } from './Sheet';
 
 /** Exercises ordered by most recent use, then name; never-used ones last. */
-function byRecentUse(state: AppState) {
+function byRecentUse(state: AppState, locale: Locale) {
   const lastUsed = new Map<ExerciseId, LocalDate>();
   for (const w of Object.values(state.workouts)) {
     for (const e of w.entries) {
@@ -17,15 +18,16 @@ function byRecentUse(state: AppState) {
   return Object.values(state.exercises).sort((a, b) => {
     const da = lastUsed.get(a.id) ?? '';
     const db = lastUsed.get(b.id) ?? '';
-    return da === db ? a.name.localeCompare(b.name) : da < db ? 1 : -1;
+    return da === db ? a.name.localeCompare(b.name, locale) : da < db ? 1 : -1;
   });
 }
 
 export function ExercisePicker({ onPick, onClose }: { onPick: (id: ExerciseId) => void; onClose: () => void }) {
   const state = useAppState();
   const dispatch = useDispatch();
+  const { locale, t } = useI18n();
   const [query, setQuery] = useState('');
-  const all = useMemo(() => byRecentUse(state), [state]);
+  const all = useMemo(() => byRecentUse(state, locale), [state, locale]);
   const q = query.trim().toLowerCase();
   const matches = q ? all.filter((x) => x.name.toLowerCase().includes(q)) : all;
   const exact = all.some((x) => x.name.toLowerCase() === q);
@@ -37,7 +39,7 @@ export function ExercisePicker({ onPick, onClose }: { onPick: (id: ExerciseId) =
   };
 
   return (
-    <Sheet title="Add exercise" onClose={onClose} tall>
+    <Sheet title={t.workout.addExercise} onClose={onClose} tall>
       <form
         onSubmit={(e) => {
           e.preventDefault();
@@ -52,8 +54,8 @@ export function ExercisePicker({ onPick, onClose }: { onPick: (id: ExerciseId) =
           autoComplete="off"
           autoCapitalize="words"
           enterKeyHint="go"
-          placeholder="Search or name a new exercise"
-          aria-label="Exercise name"
+          placeholder={t.picker.placeholder}
+          aria-label={t.picker.name}
           value={query}
           onChange={(e) => setQuery(e.currentTarget.value)}
         />
@@ -70,12 +72,12 @@ export function ExercisePicker({ onPick, onClose }: { onPick: (id: ExerciseId) =
           <li>
             <button type="button" className="pick create" onClick={create}>
               <Icon name="plus" />
-              Create “{query.trim()}”
+              {t.picker.create(query.trim())}
             </button>
           </li>
         )}
       </ul>
-      {all.length === 0 && !q && <p className="hint">Type a name like “Bench press” to create your first exercise.</p>}
+      {all.length === 0 && !q && <p className="hint">{t.picker.hint}</p>}
     </Sheet>
   );
 }

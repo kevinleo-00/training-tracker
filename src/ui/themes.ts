@@ -1,9 +1,8 @@
 import type { ThemeId } from '../domain/types';
 import type { Tune } from './device';
 
+/** A theme's look beyond CSS. Its name and description live in the message catalogs under `themes`. */
 export interface Theme {
-  label: string;
-  description: string;
   /** The `theme-color` for the browser chrome and iOS status bar, under light and dark system appearance. */
   chrome: { light: string; dark: string };
   restOver: Tune;
@@ -12,14 +11,10 @@ export interface Theme {
 /** Every theme the app offers. Each id is also a `data-theme` value its stylesheet keys on. */
 export const THEMES: Record<ThemeId, Theme> = {
   classic: {
-    label: 'Classic',
-    description: 'Clean and simple. Follows light or dark mode.',
     chrome: { light: '#f2f2f7', dark: '#000000' },
     restOver: { wave: 'sine', volume: 0.4, notes: [0, 0.25, 0.5].map((at) => ({ hz: 880, at, length: 0.15 })) },
   },
   pixel: {
-    label: 'Pixel',
-    description: 'Retro RPG menus with pixel windows and type.',
     chrome: { light: '#0a0a2a', dark: '#0a0a2a' },
     restOver: {
       wave: 'square',

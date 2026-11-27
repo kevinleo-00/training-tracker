@@ -154,11 +154,14 @@ export function LineChart({
   series,
   points,
   formatValue,
+  dateLabel,
 }: {
   title: string;
   series: LineSeries[];
   points: LinePoint[];
   formatValue: (v: number) => string;
+  /** The heading of the screen-reader table's date column. */
+  dateLabel: string;
 }) {
   const [selected, setSelected] = useState<number | null>(null);
   const all = points.flatMap((p) => p.values);
@@ -223,7 +226,7 @@ export function LineChart({
         <caption>{title}</caption>
         <thead>
           <tr>
-            <th scope="col">Date</th>
+            <th scope="col">{dateLabel}</th>
             {series.map((s) => (
               <th key={s.name} scope="col">
                 {s.name}

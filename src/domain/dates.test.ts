@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, daysBetween, parseLocalDate, toLocalDate, weekStart } from './dates';
+import { addDays, daysBetween, formatDate, parseLocalDate, toLocalDate, weekStart } from './dates';
 
 const d = (s: string) => {
   const parsed = parseLocalDate(s);
@@ -35,5 +35,11 @@ describe('dates', () => {
     expect(weekStart(d('2026-11-25'))).toBe('2026-11-23'); // Wednesday
     expect(weekStart(d('2026-11-23'))).toBe('2026-11-23'); // Monday
     expect(weekStart(d('2026-11-29'))).toBe('2026-11-23'); // Sunday
+  });
+
+  it('formats a calendar date in the requested locale, whatever the time zone', () => {
+    expect(formatDate(d('2026-11-20'), 'en', { month: 'long', day: 'numeric' })).toBe('November 20');
+    expect(formatDate(d('2026-11-20'), 'ja', { month: 'long', day: 'numeric' })).toBe('11月20日');
+    expect(formatDate(d('2026-01-01'), 'zh-Hant', { year: 'numeric', month: 'long' })).toBe('2026年1月');
   });
 });
